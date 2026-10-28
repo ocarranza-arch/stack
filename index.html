@@ -10,16 +10,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Stack">
 <style>
-:root{--bg:#0b0b0c;--card:#151517;--bd:#26262a;--fg:#e8e8ea;--mut:#8a8a92;--acc:#4c8dff;--warn:#ff5c5c;--ok:#35c46a;--oil:#f5a524}
+:root{--bg:#0b0b0c;--card:#151517;--bd:#26262a;--fg:#e8e8ea;--mut:#8a8a92;--acc:#4c8dff;--warn:#ff5c5c;--ok:#35c46a;--oil:#f5a524;--nav:#121214}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,Inter,system-ui,sans-serif;font-size:15px;line-height:1.45}
-body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 20px)}
+body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 76px)}
 .wrap{max-width:720px;margin:0 auto;padding:14px}
 h1{font-size:20px;font-weight:600;margin:0 0 2px}.sub{font-size:12px;color:var(--mut)}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 0;border-bottom:1px solid var(--bd);margin-bottom:14px}
-.tabs::-webkit-scrollbar{display:none}
-.tab{flex:0 0 auto;padding:7px 12px;border-radius:9px;border:1px solid transparent;background:transparent;color:var(--mut);font-size:13px;font-family:inherit;cursor:pointer}
-.tab.on{background:var(--card);color:var(--fg);border-color:var(--bd);font-weight:600}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
 .card h3{font-size:12px;font-weight:600;margin:0 0 10px;color:var(--mut);letter-spacing:.05em;text-transform:uppercase}
 .row{display:grid;gap:8px;margin-bottom:8px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
@@ -33,8 +29,7 @@ button{font-family:inherit;cursor:pointer}
 .x{background:transparent;border:none;color:var(--mut);font-size:17px;padding:2px 6px}
 .item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd);align-items:flex-start}
 .item:last-child{border-bottom:none}.item .b{flex:1;min-width:0}
-.item.done .b{opacity:.42}
-.item.done .nm{text-decoration:line-through}
+.item.done .b{opacity:.42}.item.done .nm{text-decoration:line-through}
 .nm{font-weight:600;font-size:14px}.meta{font-size:12px;color:var(--mut);margin-top:2px}
 .badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#232326;color:var(--mut);margin-left:5px}
 .tl{border-left:2px solid var(--bd);margin-left:6px}
@@ -57,31 +52,46 @@ td{padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}tr:last-
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cd{font-size:10px;color:var(--mut);text-align:center;padding:4px 0;font-weight:600}
 .cell{aspect-ratio:1;border:1px solid var(--bd);border-radius:8px;padding:4px 3px;display:flex;flex-direction:column;align-items:center;gap:2px;background:transparent;font-family:inherit;color:var(--fg);font-size:11px}
-.cell.blank{border:none}
-.cell.today{border-color:var(--acc);background:#1a2436}
-.cell.sel{border-color:var(--fg)}
+.cell.blank{border:none}.cell.today{border-color:var(--acc);background:#1a2436}.cell.sel{border-color:var(--fg)}
 .cell .dn{font-weight:600;font-size:11px}
 .dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
 .dot{width:5px;height:5px;border-radius:50%;background:var(--acc)}
 .dot.oral{background:var(--ok)}.dot.oil{background:var(--oil)}
 .dot.rare{width:7px;height:7px;box-shadow:0 0 0 1.5px var(--bg),0 0 0 2.5px currentColor}
 .bodyfig{display:flex;gap:10px;justify-content:center;margin:8px 0}
-.site{fill:#232326;stroke:#3a3a40;stroke-width:2;cursor:pointer;transition:fill .15s}
-.site.fresh{fill:#ff5c5c;stroke:#ff8a8a}
-.site.mid{fill:#f5a524;stroke:#ffc76b}
-.site.ready{fill:#35c46a;stroke:#6fe39a}
+.site{fill:#232326;stroke:#3a3a40;stroke-width:2;cursor:pointer}
+.site.fresh{fill:#ff5c5c;stroke:#ff8a8a}.site.mid{fill:#f5a524;stroke:#ffc76b}.site.ready{fill:#35c46a;stroke:#6fe39a}
 .legend{display:flex;gap:14px;justify-content:center;font-size:11px;color:var(--mut);margin-top:6px}
-.lg{display:flex;align-items:center;gap:4px}
-.lgc{width:9px;height:9px;border-radius:50%}
+.lg{display:flex;align-items:center;gap:4px}.lgc{width:9px;height:9px;border-radius:50%}
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--nav);border-top:1px solid var(--bd);display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:9}
+.nb{flex:1;background:none;border:none;color:var(--mut);font-size:10px;padding:5px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit}
+.nb.on{color:var(--acc)}
+.nb i{font-size:17px;font-style:normal;line-height:1}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.s{background:#1a1a1d;border-radius:10px;padding:10px;text-align:center}
+.sv{font-size:20px;font-weight:600}.sl{font-size:10px;color:var(--mut)}
+.chart{width:100%;display:block}
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ph{position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:#1a1a1d}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .dt{position:absolute;bottom:0;left:0;right:0;font-size:9.5px;padding:3px 5px;background:rgba(0,0,0,.65);color:#fff}
+.ph .dl{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:6px;font-size:12px;width:20px;height:20px;line-height:1}
+.mk{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--bd)}
+.mk:last-child{border-bottom:none}
+.mk .b{flex:1;min-width:0}
+.v{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.v.hi{color:var(--warn)}.v.lo{color:var(--oil)}.v.in{color:var(--ok)}
+.more{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.more button{background:#1d1d20;border:1px solid var(--bd);border-radius:10px;padding:16px 10px;color:var(--fg);font-size:13.5px;font-family:inherit;font-weight:500;text-align:left}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>Stack</h1>
+<h1 id="ttl">Stack</h1>
 <div class="sub" id="sub"></div>
-<div class="tabs" id="tabs"></div>
 <div id="view"></div>
 </div>
+<div class="nav" id="nav"></div>
 <script>
 const KEY='stack_v1';
 const CLS=[['glp1','GLP-1'],['amylin','Amylin'],['aas','Oil'],['oral','Oral AAS'],['hcg','hCG'],['ghs','GH secretagogue'],['nad','NAD+'],['heal','Healing peptide'],['skin','Skin peptide'],['mito','Metabolic'],['stim','Stimulant'],['ssri','SSRI'],['abx','Antibiotic'],['bp','BP med'],['pde5','PDE5'],['supp','Supplement'],['rx','Other Rx']];
@@ -100,10 +110,12 @@ const conc=c=>c.bac>0?c.mg/c.bac:0;
 const vol=(c,d)=>{const k=conc(c);return k>0?d/k:0;};
 const un=(c,d)=>vol(c,d)*100;
 const pins=c=>(!c.route||c.route==='oral')?0:(c.freq==='daily'?7:c.freq==='bid'?14:c.freq==='eod'?3.5:c.freq==='2xw'?2:c.freq==='3xw'?3:c.freq==='weekly'?1:0);
+const MARKS=[['hct','Hematocrit','%',38.8,50,'Donate above 52%'],['e2','Estradiol','pg/mL',10,40,'Crashed E2 wrecks erections'],['prl','Prolactin','ng/mL',4,15.2,'High = ED'],['psa','PSA','ng/mL',0,4,'Baseline matters at 52'],['tt','Total testosterone','ng/dL',264,916,''],['ft','Free testosterone','pg/mL',50,224,''],['shbg','SHBG','nmol/L',16,55,''],['tsh','TSH','mIU/L',0.45,4.5,''],['ft4','Free T4','ng/dL',0.82,1.77,''],['a1c','HbA1c','%',4,5.6,'GLP-1 moves this'],['glu','Fasting glucose','mg/dL',70,99,''],['ins','Fasting insulin','uIU/mL',2,19,''],['ldl','LDL','mg/dL',0,100,'Oils push this'],['hdl','HDL','mg/dL',40,100,''],['trig','Triglycerides','mg/dL',0,150,''],['alt','ALT','U/L',7,56,'Orals raise this'],['ast','AST','U/L',10,40,''],['creat','Creatinine','mg/dL',0.7,1.3,'Creatine raises this'],['crp','hs-CRP','mg/L',0,3,''],['vitd','Vitamin D','ng/mL',30,100,''],['ferr','Ferritin','ng/mL',30,400,''],['igf','IGF-1','ng/mL',75,216,'Tesamorelin raises this'],['b12','B12','pg/mL',200,900,'']];
+const NAV=[['today','Today','◉'],['body','Body','▤'],['labs','Labs','◍'],['sites','Sites','◎'],['more','More','≡']];
 let S=load();
 function mk(n,cls,route,mg,bac,dose,f,t,t2,site,note){return{id:uid(),name:n,cls:cls,route:route,mg:mg,bac:bac,dose:dose,freq:f,time:t,time2:t2||'',site:site,note:note||'',start:t0(),used:0,status:'active'};}
 function sp(n,dose,t,note,on){return{id:uid(),name:n,cls:'supp',dose:dose,freq:'daily',time:t,note:note||'',start:t0(),on:!!on};}
-function fresh(){return{tab:'today',editing:null,calMonth:0,selDay:null,done:{},sites:{},compounds:[
+function fresh(){return{tab:'today',editing:null,calMonth:0,selDay:null,done:{},sites:{},weight:[],labs:[],compounds:[
 mk('NAD+','nad','subq',1200,12,25,'2xw','07:30','','Abdomen L','Pin early, not at night.'),
 mk('BPC-157','heal','subq',10,2,0.25,'bid','08:00','20:00','Abdomen R','250-500mcg 2x/day.'),
 mk('GHK-Cu','skin','subq',50,3,1,'daily','20:00','','Thigh L','Combined cartridge with BPC. 30 on / 30 off.'),
@@ -126,7 +138,7 @@ mk('TB-500','heal','subq',10,2,2.5,'2xw','08:00','','Glute L','Out of stock.')
 {id:uid(),name:'Sildenafil',cls:'pde5',dose:'50 mg',freq:'prn',days:[],time:'PRN',start:t0()}
 ],supps:[
 sp('Whey isolate','2 scoops (50g)','08:00','Dairy - 2h from doxy.',true),
-sp('Creatine monohydrate','5 g','08:00','Raises creatinine on bloods.',true),
+sp('Creatine monohydrate','5 g','08:00','Raises creatinine.',true),
 sp('Electrolytes','1 serving','08:00','Essential on a GLP-1.',true),
 sp('Vitamin D3 + K2','4000 IU / 100 mcg','12:00','With fat.',false),
 sp('Omega-3','2-3 g EPA/DHA','12:00','With food.',false),
@@ -170,7 +182,7 @@ sp('Taurine','2 g','08:00','',false)
 {id:uid(),name:'KPV 30 mg',cls:'heal',qty:'1 kit',note:'incoming'}
 ]};}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);
-['compounds','meds','supps','storage'].forEach(k=>p[k]=p[k]||[]);
+['compounds','meds','supps','storage','weight','labs'].forEach(k=>p[k]=p[k]||[]);
 p.done=p.done||{};p.sites=p.sites||{};
 if(p.calMonth===undefined)p.calMonth=0;
 p.supps.forEach(s=>{if(s.on===undefined)s.on=false;});
@@ -178,9 +190,11 @@ const cut=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
 Object.keys(p.done).forEach(d=>{if(d<cut)delete p.done[d];});
 return p;}}catch(e){}return fresh();}
 function save(){localStorage.setItem(KEY,JSON.stringify(S));}
-const TABS=[['today','Today'],['cal','Calendar'],['rot','Sites'],['stack','Stack'],['supps','Supps'],['inv','Inventory'],['flags','Flags'],['tools','Tools'],['plan','Plan'],['proto','Proto']];
+const TITLES={today:'Today',body:'Body',labs:'Labs',sites:'Sites',more:'More',cal:'Calendar',stack:'Stack',supps:'Supps',inv:'Inventory',flags:'Flags',tools:'Tools',plan:'Plan',proto:'Proto'};
 function render(){
-document.getElementById('tabs').innerHTML=TABS.map(t=>`<button class="tab ${S.tab===t[0]?'on':''}" data-tab="${t[0]}">${t[1]}</button>`).join('');
+const prim=['today','body','labs','sites','more'];
+document.getElementById('nav').innerHTML=NAV.map(n=>`<button class="nb ${S.tab===n[0]||(n[0]==='more'&&!prim.includes(S.tab))?'on':''}" data-tab="${n[0]}"><i>${n[2]}</i>${n[1]}</button>`).join('');
+document.getElementById('ttl').textContent=TITLES[S.tab]||'Stack';
 const act=S.compounds.filter(c=>c.status==='active');
 document.getElementById('sub').textContent=`${act.length} compounds · ~${Math.round(act.reduce((a,c)=>a+pins(c),0))} pins/wk`;
 let html='';
@@ -191,11 +205,12 @@ if(it)html+=`<div class="editb"><h3 style="font-size:12px;color:var(--mut);margi
 ${it.mg!==undefined?`<div class="row g2"><div><label>Vial mg</label><input id="eM" type="number" value="${it.mg}"></div><div><label>BAC mL</label><input id="eB" type="number" step="0.1" value="${it.bac}"></div></div>`:''}
 <div class="row"><div><label>Note</label><input id="eNo" value="${esc(it.note||'')}"></div></div>
 <div class="fl"><button class="btn" id="eSave">Save</button><button class="btn sec" id="eCancel">Cancel</button></div></div>`;}
-html+=({today:vToday,cal:vCal,rot:vRot,stack:vStack,supps:vSupps,inv:vInv,flags:vFlags,tools:vTools,plan:vPlan,proto:vProto})[S.tab]();
+html+=({today:vToday,body:vBody,labs:vLabs,sites:vRot,more:vMore,cal:vCal,stack:vStack,supps:vSupps,inv:vInv,flags:vFlags,tools:vTools,plan:vPlan,proto:vProto})[S.tab]();
 document.getElementById('view').innerHTML=html;
+if(S.tab==='body')drawW();
 }
 document.addEventListener('click',e=>{
-const t=e.target.closest('[data-tab]');if(t){S.tab=t.dataset.tab;S.editing=null;save();render();return;}
+const t=e.target.closest('[data-tab]');if(t){S.tab=t.dataset.tab;S.editing=null;save();render();window.scrollTo(0,0);return;}
 const ed=e.target.closest('[data-edit]');if(ed){const[k,id]=ed.dataset.edit.split(':');S.editing={k:k,id:id};render();return;}
 if(e.target.id==='eCancel'){S.editing=null;render();return;}
 if(e.target.id==='eSave'){const it=(S[S.editing.k]||[]).find(x=>x.id===S.editing.id);if(it){
@@ -204,18 +219,17 @@ const tt=document.getElementById('eT').value;it.time=it.freq==='prn'?'PRN':tt;
 if(document.getElementById('eM')){it.mg=+document.getElementById('eM').value;it.bac=+document.getElementById('eB').value;}
 it.note=document.getElementById('eNo').value;S.editing=null;save();render();}return;}
 const d=e.target.closest('[data-del]');if(d){const[k,id]=d.dataset.del.split(':');S[k]=S[k].filter(x=>x.id!==id);save();render();return;}
-const ck=e.target.closest('[data-ck]');if(ck){
- const[k,id]=ck.dataset.ck.split(':');const ds=t0();
- S.done[ds]=S.done[ds]||{};
- if(S.done[ds][id]){delete S.done[ds][id];
-  if(k==='compounds'){const c=S.compounds.find(x=>x.id===id);if(c&&c.used>0)c.used--;}}
- else{S.done[ds][id]=1;
-  if(k==='compounds'){const c=S.compounds.find(x=>x.id===id);if(c)c.used=(c.used||0)+1;}}
- save();render();return;}
+const ck=e.target.closest('[data-ck]');if(ck){const[k,id]=ck.dataset.ck.split(':');const ds=t0();
+S.done[ds]=S.done[ds]||{};
+if(S.done[ds][id]){delete S.done[ds][id];if(k==='compounds'){const c=S.compounds.find(x=>x.id===id);if(c&&c.used>0)c.used--;}}
+else{S.done[ds][id]=1;if(k==='compounds'){const c=S.compounds.find(x=>x.id===id);if(c)c.used=(c.used||0)+1;}}
+save();render();return;}
 const tg=e.target.closest('[data-tog]');if(tg){const s=S.supps.find(x=>x.id===tg.dataset.tog);if(s){s.on=!s.on;save();render();}return;}
 const cd=e.target.closest('[data-cell]');if(cd){S.selDay=cd.dataset.cell;save();render();return;}
 const cm=e.target.closest('[data-mon]');if(cm){S.calMonth+=+cm.dataset.mon;save();render();return;}
 const st=e.target.closest('[data-site]');if(st){S.sites[st.dataset.site]=t0();save();render();return;}
+const pv=e.target.closest('[data-ph]');if(pv){bigPhoto(pv.dataset.ph);return;}
+const pd=e.target.closest('[data-pd]');if(pd){delPhoto(pd.dataset.pd);return;}
 });
 function occurs(x,d){const s=new Date(x.start+'T00:00:00'),dt=new Date(d+'T00:00:00');if(dt<s)return false;const df=Math.round((dt-s)/864e5);
 if(x.freq==='daily'||x.freq==='bid')return true;if(x.freq==='eod')return df%2===0;if(x.freq==='weekly')return df%7===0;
@@ -227,45 +241,119 @@ if(withSupp)a.push(...S.supps.filter(s=>s.on&&s.freq!=='prn'&&occurs(s,ds)).map(
 return a.sort((x,y)=>String(x.time).localeCompare(String(y.time)));
 }
 function vToday(){
-const ds=t0();
-const items=dayItems(ds,true);
-const done=S.done[ds]||{};
+const ds=t0();const items=dayItems(ds,true);const done=S.done[ds]||{};
 const n=items.filter(i=>done[i.id]).length;
 const iso=[{time:'10:00',name:'Doxycycline window',note:'2h clear of dairy, calcium, iron, zinc, antacids. Upright 30 min.',k:'iso'}];
 const merged=[...items,...iso].sort((a,b)=>String(a.time).localeCompare(String(b.time)));
 return `<div class="prog"><span class="meta">${n} / ${items.length}</span><div class="pbar"><i style="width:${items.length?n/items.length*100:0}%"></i></div></div>
 <div class="card"><h3>${DAYS[new Date().getDay()]} ${ds}</h3><div class="tl">${merged.map(x=>{
- if(x.k==='iso')return `<div class="ev iso"><div class="tm">${x.time}</div><div class="nm">${x.name}</div><div class="meta">${x.note}</div></div>`;
- const d=done[x.id];
- return `<div class="ev ${x.kind}"><div class="tm">${x.time}${x.time2?' + '+x.time2:''}</div>
- <div class="item ${d?'done':''}" style="border:none;padding:2px 0"><button class="chk ${d?'on':''}" data-ck="${x.k}:${x.id}">✓</button>
- <div class="b"><div class="nm">${esc(x.name)}</div>
- ${x.dose?`<div class="meta">${esc(x.dose)}${x.route&&x.route!=='oral'?' · '+rN(x.route):''}${x.site?' · '+x.site:''}</div>`:''}
- ${x.note?`<div class="meta">${esc(x.note)}</div>`:''}</div></div></div>`;}).join('')}</div></div>
-<div class="card"><h3>As needed</h3>${S.meds.filter(m=>m.freq==='prn').map(m=>`<div class="item"><div class="b"><div class="nm">${esc(m.name)}</div><div class="meta">${esc(m.dose)}</div></div></div>`).join('')}
-<div class="note">Propranolol for work only. Sildenafil 50mg, 1h before.</div></div>`;
+if(x.k==='iso')return `<div class="ev iso"><div class="tm">${x.time}</div><div class="nm">${x.name}</div><div class="meta">${x.note}</div></div>`;
+const d=done[x.id];
+return `<div class="ev ${x.kind}"><div class="tm">${x.time}${x.time2?' + '+x.time2:''}</div>
+<div class="item ${d?'done':''}" style="border:none;padding:2px 0"><button class="chk ${d?'on':''}" data-ck="${x.k}:${x.id}">✓</button>
+<div class="b"><div class="nm">${esc(x.name)}</div>
+${x.dose?`<div class="meta">${esc(x.dose)}${x.route&&x.route!=='oral'?' · '+rN(x.route):''}${x.site?' · '+x.site:''}</div>`:''}
+${x.note?`<div class="meta">${esc(x.note)}</div>`:''}</div></div></div>`;}).join('')}</div></div>
+<div class="card"><h3>As needed</h3>${S.meds.filter(m=>m.freq==='prn').map(m=>`<div class="item"><div class="b"><div class="nm">${esc(m.name)}</div><div class="meta">${esc(m.dose)}</div></div></div>`).join('')}</div>`;
 }
-function vCal(){
-const base=new Date();base.setDate(1);base.setMonth(base.getMonth()+S.calMonth);
-const y=base.getFullYear(),m=base.getMonth();
-const first=new Date(y,m,1).getDay();const days=new Date(y,m+1,0).getDate();
-let cells='';
-for(let i=0;i<first;i++)cells+='<div class="cell blank"></div>';
-for(let d=1;d<=days;d++){
- const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
- const it=dayItems(ds,false);
- const rare=it.filter(x=>x.freq==='weekly'||x.freq==='2xw');
- const dots=it.slice(0,4).map(x=>`<span class="dot ${x.kind==='rx'?'oral':x.cls==='aas'?'oil':''} ${rare.includes(x)?'rare':''}"></span>`).join('');
- const extra=it.length>4?`<span class="meta" style="font-size:9px">+${it.length-4}</span>`:'';
- cells+=`<button class="cell ${ds===t0()?'today':''} ${S.selDay===ds?'sel':''}" data-cell="${ds}"><span class="dn">${d}</span><span class="dots">${dots}</span>${extra}</button>`;
+function chart(pts,lo,hi){
+if(!pts.length)return '';
+const W=320,H=120,P=24;
+const vs=pts.map(p=>p.v);const mn=Math.min(...vs,lo),mx=Math.max(...vs,hi);
+const sy=v=>H-P-((v-mn)/(mx-mn||1))*(H-2*P);
+const sx=i=>P+(i/(Math.max(pts.length-1,1)))*(W-2*P);
+const line=pts.map((p,i)=>`${sx(i)},${sy(p.v)}`).join(' ');
+return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:130px">
+<rect x="0" y="${sy(hi)}" width="${W}" height="${Math.max(sy(lo)-sy(hi),1)}" fill="#35c46a" opacity="0.09"/>
+<polyline points="${line}" fill="none" stroke="#4c8dff" stroke-width="2" stroke-linejoin="round"/>
+${pts.map((p,i)=>`<circle cx="${sx(i)}" cy="${sy(p.v)}" r="2.6" fill="#4c8dff"/>`).join('')}
+</svg>`;
 }
-const det=S.selDay?`<div class="card"><h3>${S.selDay}</h3>${dayItems(S.selDay,false).map(x=>`<div class="item"><div class="b"><div class="nm">${esc(x.name)}</div><div class="meta">${x.time}${x.dose?' · '+esc(x.dose):''}${x.site?' · '+x.site:''}</div></div></div>`).join('')||'<div class="empty">Nothing scheduled.</div>'}</div>`:'';
-return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-<button class="btn sec sm" data-mon="-1">‹</button><b>${MONTHS[m]} ${y}</b><button class="btn sec sm" data-mon="1">›</button></div>
-<div class="cal">${DAYS.map(d=>`<div class="cd">${d[0]}</div>`).join('')}${cells}</div>
-<div class="legend" style="margin-top:12px"><span class="lg"><span class="lgc" style="background:var(--acc)"></span>injection</span><span class="lg"><span class="lgc" style="background:var(--ok)"></span>oral</span><span class="lg"><span class="lgc" style="background:var(--oil)"></span>oil</span></div>
-<div class="note">Larger ringed dots are the once-weekly items — reta, tirz, NAD+.</div></div>${det}`;
+function drawW(){}
+function vBody(){
+const w=[...S.weight].sort((a,b)=>a.d.localeCompare(b.d));
+const withW=w.filter(x=>x.w>0),withWaist=w.filter(x=>x.waist>0);
+const latest=w[w.length-1];
+const first=w[0];
+const delta=latest&&first&&latest.w&&first.w?(latest.w-first.w):0;
+const wk=w.filter(x=>x.d>=new Date(Date.now()-7*864e5).toISOString().slice(0,10)&&x.w>0);
+const avg=wk.length?(wk.reduce((a,x)=>a+x.w,0)/wk.length):0;
+return `<div class="card"><h3>Log</h3>
+<div class="row g3"><div><label>Date</label><input id="bD" type="date" value="${t0()}"></div><div><label>Weight (lb)</label><input id="bW" type="number" step="0.1" placeholder="185"></div><div><label>Waist (in)</label><input id="bWa" type="number" step="0.25" placeholder="37.5"></div></div>
+<button class="btn" id="bAdd">Save</button></div>
+<div class="card"><h3>Weight</h3><div class="stat">
+<div class="s"><div class="sv">${latest&&latest.w?latest.w:'—'}</div><div class="sl">latest</div></div>
+<div class="s"><div class="sv ${delta<0?'ok':''}">${delta?delta.toFixed(1):'—'}</div><div class="sl">change</div></div>
+<div class="s"><div class="sv">${avg?avg.toFixed(1):'—'}</div><div class="sl">7-day avg</div></div></div>
+${withW.length>1?chart(withW.map(x=>({v:x.w})),150,190):'<div class="empty">Log two weights to chart.</div>'}
+<div class="note">Band is 150-190 lb. Target 150-155.</div></div>
+<div class="card"><h3>Waist</h3><div class="meta">Latest: <b>${latest&&latest.waist?latest.waist+' in':'—'}</b> · target under 30 in</div>
+${withWaist.length>1?chart(withWaist.map(x=>({v:x.waist})),28,40):'<div class="empty">Log two waist readings to chart.</div>'}</div>
+<div class="card"><h3>Photos</h3><div class="photos" id="phGrid"></div>
+<div class="fl"><label class="btn sm" style="margin:0">Add photo<input type="file" id="phIn" accept="image/*" style="display:none"></label></div></div>
+<div class="card"><h3>History</h3><table><tr><th>Date</th><th>Weight</th><th>Waist</th><th></th></tr>
+${[...w].reverse().slice(0,20).map(x=>`<tr><td>${x.d}</td><td>${x.w||'—'}</td><td>${x.waist||'—'}</td><td><button class="x" data-del="weight:${x.id}">×</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Nothing logged.</td></tr>'}</table></div>`;
 }
+document.addEventListener('click',e=>{if(e.target.id!=='bAdd')return;
+const g=id=>document.getElementById(id);const w=+g('bW').value,wa=+g('bWa').value;
+if(!w&&!wa){alert('Enter a weight or waist');return;}
+S.weight.push({id:uid(),d:g('bD').value,w:w||0,waist:wa||0});save();render();});
+let PH=[];
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('stack_photos',1);
+r.onupgradeneeded=()=>r.result.createObjectStore('p',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function loadPhotos(){
+try{const db=await idb();const tx=db.transaction('p','readonly');
+PH=await new Promise(r=>{const q=tx.objectStore('p').getAll();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([]);});
+PH.sort((a,b)=>b.d.localeCompare(a.d));
+const g=document.getElementById('phGrid');
+if(g)g.innerHTML=PH.map(p=>`<div class="ph"><img src="${p.src}" data-ph="${p.id}"><span class="dt">${p.d}</span><button class="dl" data-pd="${p.id}">×</button></div>`).join('')||'<div class="empty">No photos yet.</div>';
+}catch(e){}}
+async function addPhoto(file){
+const img=new Image();const url=URL.createObjectURL(file);
+await new Promise(r=>{img.onload=r;img.src=url;});
+const max=760;let w=img.width,h=img.height;
+if(w>h&&w>max){h=h*max/w;w=max;}else if(h>=w&&h>max){w=w*max/h;h=max;}
+const c=document.createElement('canvas');c.width=w;c.height=h;
+c.getContext('2d').drawImage(img,0,0,w,h);
+const src=c.toDataURL('image/jpeg',0.62);
+const db=await idb();const tx=db.transaction('p','readwrite');
+tx.objectStore('p').put({id:uid(),d:t0(),src:src});
+URL.revokeObjectURL(url);setTimeout(loadPhotos,150);}
+document.addEventListener('change',e=>{if(e.target.id!=='phIn')return;const f=e.target.files[0];if(f)addPhoto(f);});
+async function delPhoto(id){const db=await idb();const tx=db.transaction('p','readwrite');tx.objectStore('p').delete(id);setTimeout(loadPhotos,150);}
+function bigPhoto(id){const p=PH.find(x=>x.id===id);if(!p)return;
+const w=window.open('','_self');if(!w)return;
+const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:#000;z-index:99;display:flex;align-items:center;justify-content:center';
+d.innerHTML=`<img src="${p.src}" style="max-width:100%;max-height:100%;object-fit:contain">`;
+d.onclick=()=>d.remove();document.body.appendChild(d);}
+function vLabs(){
+const sel=S.selLab||'hct';
+const m=MARKS.find(x=>x[0]===sel);
+const rows=S.labs.filter(l=>l.k===sel).sort((a,b)=>a.d.localeCompare(b.d));
+const last=rows[rows.length-1];
+const v=last?last.v:null;
+const st=v===null?'':(v<m[3]?'lo':v>m[4]?'hi':'in');
+return `<div class="card"><h3>Marker</h3><select id="lbSel">${MARKS.map(x=>`<option value="${x[0]}" ${x[0]===sel?'selected':''}>${x[1]}</option>`).join('')}</select>
+<div style="margin-top:10px">${v!==null?`<span class="v ${st}">${v} ${m[2]}</span> <span class="meta">on ${last.d}</span>`:'<span class="meta">No readings yet.</span>'}</div>
+<div class="note">Reference ${m[3]}–${m[4]} ${m[2]}${m[5]?' · '+m[5]:''}</div>
+${rows.length>1?chart(rows.map(x=>({v:x.v})),m[3],m[4]):''}</div>
+<div class="card"><h3>Log reading</h3><div class="row g2"><div><label>Date</label><input id="lbD" type="date" value="${t0()}"></div><div><label>Value (${m[2]})</label><input id="lbV" type="number" step="0.01"></div></div>
+<button class="btn" id="lbAdd">Save</button></div>
+<div class="card"><h3>All markers</h3>${MARKS.map(x=>{
+const r=S.labs.filter(l=>l.k===x[0]).sort((a,b)=>a.d.localeCompare(b.d));
+const lv=r[r.length-1];if(!lv)return '';
+const c=lv.v<x[3]?'lo':lv.v>x[4]?'hi':'in';
+return `<div class="mk"><div class="b" data-lab="${x[0]}"><div class="nm" style="font-size:13.5px">${x[1]}</div><div class="meta">${x[3]}–${x[4]} ${x[2]}</div></div><div class="v ${c}">${lv.v}</div></div>`;}).join('')||'<div class="empty">No readings.</div>'}</div>
+<div class="card"><h3>Recent</h3><table><tr><th>Date</th><th>Marker</th><th>Value</th><th></th></tr>
+${[...S.labs].sort((a,b)=>b.d.localeCompare(a.d)).slice(0,15).map(l=>{const mm=MARKS.find(x=>x[0]===l.k);
+return `<tr><td>${l.d}</td><td>${mm?mm[1]:l.k}</td><td>${l.v} ${mm?mm[2]:''}</td><td><button class="x" data-del="labs:${l.id}">×</button></td></tr>`;}).join('')||'<tr><td colspan="4" class="empty">Nothing logged.</td></tr>'}</table></div>`;
+}
+document.addEventListener('change',e=>{if(e.target.id!=='lbSel')return;S.selLab=e.target.value;save();render();});
+document.addEventListener('click',e=>{const l=e.target.closest('[data-lab]');if(l){S.selLab=l.dataset.lab;save();render();return;}
+if(e.target.id!=='lbAdd')return;
+const d=document.getElementById('lbD').value;const v=+document.getElementById('lbV').value;
+if(!v&&v!==0){alert('Enter a value');return;}
+S.labs.push({id:uid(),k:S.selLab||'hct',d:d,v:v});save();render();});
 function siteAge(s){const d=S.sites[s];if(!d)return 99;return Math.floor((new Date(t0())-new Date(d))/864e5);}
 function siteCls(s){const a=siteAge(s);if(a<=1)return 'fresh';if(a<=3)return 'mid';return 'ready';}
 function fig(back){
@@ -279,19 +367,41 @@ return `<svg width="120" height="230" viewBox="0 0 120 230">
 <rect x="40" y="132" width="16" height="88" rx="8" fill="#1d1d20" stroke="#3a3a40" stroke-width="2"/>
 <rect x="64" y="132" width="16" height="88" rx="8" fill="#1d1d20" stroke="#3a3a40" stroke-width="2"/>
 ${back?g('Glute L',48,118)+g('Glute R',72,118):g('Delt L',26,52)+g('Delt R',94,52)+g('Abdomen L',48,88)+g('Abdomen R',72,88)+g('Thigh L',48,168)+g('Thigh R',72,168)}
-</svg>`;
-}
+</svg>`;}
 function vRot(){
-const inj=S.compounds.filter(c=>c.status==='active'&&(c.route==='subq'||c.route==='im'));
 const ready=SITES.filter(s=>siteAge(s)>3).sort((a,b)=>siteAge(b)-siteAge(a));
 return `<div class="card"><h3>Next site</h3><div class="meta" style="font-size:14px;color:var(--fg)"><b>${ready[0]||'any — all used recently'}</b></div>
-<div class="note">Tap a dot below to log a site as used today.</div></div>
-<div class="card"><h3>Body map</h3>
-<div class="bodyfig">${fig(false)}${fig(true)}</div>
+<div class="note">Tap a dot to log it used today.</div></div>
+<div class="card"><h3>Body map</h3><div class="bodyfig">${fig(false)}${fig(true)}</div>
 <div class="legend"><span class="lg"><span class="lgc" style="background:#ff5c5c"></span>1 day</span><span class="lg"><span class="lgc" style="background:#f5a524"></span>2-3 days</span><span class="lg"><span class="lgc" style="background:#35c46a"></span>ready</span></div></div>
-<div class="card"><h3>Per compound</h3><table><tr><th>Compound</th><th>Assigned</th><th>Days since</th></tr>
-${inj.map(c=>`<tr><td>${esc(c.name)}</td><td class="meta">${c.site||'—'}</td><td class="${siteAge(c.site)<=1?'warn':'ok'}">${c.site&&S.sites[c.site]?siteAge(c.site):'never'}</td></tr>`).join('')}</table>
-<div class="note">Oils only into delts or glutes. Water peptides into abdomen or thigh.</div></div>`;
+<div class="card"><h3>Per compound</h3><table><tr><th>Compound</th><th>Assigned</th><th>Days</th></tr>
+${S.compounds.filter(c=>c.status==='active'&&(c.route==='subq'||c.route==='im')).map(c=>`<tr><td>${esc(c.name)}</td><td class="meta">${c.site||'—'}</td><td class="${siteAge(c.site)<=1?'warn':'ok'}">${c.site&&S.sites[c.site]?siteAge(c.site):'never'}</td></tr>`).join('')}</table>
+<div class="note">Oils into delts or glutes only.</div></div>`;
+}
+function vMore(){return `<div class="card"><h3>Everything else</h3><div class="more">
+<button data-tab="cal">Calendar</button><button data-tab="stack">Stack</button>
+<button data-tab="supps">Supps</button><button data-tab="inv">Inventory</button>
+<button data-tab="flags">Flags</button><button data-tab="tools">Tools</button>
+<button data-tab="plan">Plan</button><button data-tab="proto">Protocols</button></div></div>`;
+}
+function vCal(){
+const base=new Date();base.setDate(1);base.setMonth(base.getMonth()+S.calMonth);
+const y=base.getFullYear(),m=base.getMonth();
+const first=new Date(y,m,1).getDay();const days=new Date(y,m+1,0).getDate();
+let cells='';
+for(let i=0;i<first;i++)cells+='<div class="cell blank"></div>';
+for(let d=1;d<=days;d++){
+const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const it=dayItems(ds,false);
+const rare=it.filter(x=>x.freq==='weekly'||x.freq==='2xw');
+const dots=it.slice(0,4).map(x=>`<span class="dot ${x.kind==='rx'?'oral':x.cls==='aas'?'oil':''} ${rare.includes(x)?'rare':''}"></span>`).join('');
+cells+=`<button class="cell ${ds===t0()?'today':''} ${S.selDay===ds?'sel':''}" data-cell="${ds}"><span class="dn">${d}</span><span class="dots">${dots}</span></button>`;
+}
+const det=S.selDay?`<div class="card"><h3>${S.selDay}</h3>${dayItems(S.selDay,false).map(x=>`<div class="item"><div class="b"><div class="nm">${esc(x.name)}</div><div class="meta">${x.time}${x.site?' · '+x.site:''}</div></div></div>`).join('')||'<div class="empty">Nothing.</div>'}</div>`:'';
+return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<button class="btn sec sm" data-mon="-1">‹</button><b>${MONTHS[m]} ${y}</b><button class="btn sec sm" data-mon="1">›</button></div>
+<div class="cal">${DAYS.map(d=>`<div class="cd">${d[0]}</div>`).join('')}${cells}</div>
+<div class="legend" style="margin-top:12px"><span class="lg"><span class="lgc" style="background:var(--acc)"></span>injection</span><span class="lg"><span class="lgc" style="background:var(--ok)"></span>oral</span><span class="lg"><span class="lgc" style="background:var(--oil)"></span>oil</span></div></div>${det}`;
 }
 function vStack(){
 const sec=(arr,k,label)=>`<div class="card"><h3>${label}</h3>${arr.map(x=>{const oral=!x.route||x.route==='oral';const c_=conc(x),u=un(x,x.dose);
@@ -300,30 +410,26 @@ return `<div class="item"><div class="b"><div class="nm" data-edit="${k}:${x.id}
 ${x.note?`<div class="meta">${esc(x.note)}</div>`:''}</div><button class="x" data-del="${k}:${x.id}">×</button></div>`;}).join('')||'<div class="empty">None.</div>'}</div>`;
 return sec(S.compounds.filter(c=>c.status==='active'),'compounds','Active compounds')+sec(S.meds,'meds','Medications');}
 function vSupps(){
-const on=S.supps.filter(s=>s.on),off=S.supps.filter(s=>!s.on);
 const row=s=>`<div class="item"><button class="chk ${s.on?'on':''}" data-tog="${s.id}">✓</button>
-<div class="b" data-edit="supps:${s.id}"><div class="nm">${esc(s.name)}</div><div class="meta">${esc(s.dose||'')}${s.on?' · '+s.time:''}${s.note?' · '+esc(s.note):''}</div></div>
+<div class="b" data-edit="supps:${s.id}"><div class="nm">${esc(s.name)}</div><div class="meta">${esc(s.dose||'')}${s.on?' · '+s.time:''}</div></div>
 <button class="x" data-del="supps:${s.id}">×</button></div>`;
-return `<div class="card"><h3>On — shown on Today (${on.length})</h3>${on.map(row).join('')||'<div class="empty">Nothing on.</div>'}</div>
-<div class="card"><h3>Off — not owned yet (${off.length})</h3>${off.map(row).join('')||'<div class="empty">None.</div>'}<div class="note">Tap the box to switch one on. It then appears on Today at its set time.</div></div>
-<div class="card"><h3>Add</h3><div class="row g3"><div><label>Name</label><input id="pN"></div><div><label>Dose</label><input id="pD"></div><div><label>Time</label><input id="pT" type="time" value="12:00"></div></div>
-<div class="row g2"><div><label>Note</label><input id="pNo"></div><div></div></div><button class="btn" id="pAdd">Add</button></div>`;}
+return `<div class="card"><h3>On (${S.supps.filter(s=>s.on).length})</h3>${S.supps.filter(s=>s.on).map(row).join('')||'<div class="empty">None.</div>'}</div>
+<div class="card"><h3>Off (${S.supps.filter(s=>!s.on).length})</h3>${S.supps.filter(s=>!s.on).map(row).join('')||'<div class="empty">None.</div>'}</div>
+<div class="card"><h3>Add</h3><div class="row g3"><div><label>Name</label><input id="pN"></div><div><label>Dose</label><input id="pD"></div><div><label>Time</label><input id="pT" type="time" value="12:00"></div></div><button class="btn" id="pAdd">Add</button></div>`;}
 document.addEventListener('click',e=>{if(e.target.id!=='pAdd')return;const g=id=>document.getElementById(id);
 if(!g('pN').value){alert('Name required');return;}
-S.supps.push({id:uid(),name:g('pN').value,cls:'supp',dose:g('pD').value,freq:'daily',time:g('pT').value,note:g('pNo').value,start:t0(),on:true});save();render();});
+S.supps.push({id:uid(),name:g('pN').value,cls:'supp',dose:g('pD').value,freq:'daily',time:g('pT').value,note:'',start:t0(),on:true});save();render();});
 function vInv(){return `<div class="card"><h3>Inventory</h3><table><tr><th>Item</th><th>Qty</th><th>Note</th><th></th></tr>${S.storage.map(s=>`<tr><td data-edit="storage:${s.id}">${esc(s.name)}<div class="meta">${cN(s.cls)}</div></td><td>${esc(s.qty)}</td><td class="meta">${esc(s.note||'')}</td><td><button class="x" data-del="storage:${s.id}">×</button></td></tr>`).join('')}</table></div>`;}
-const RULES=[['ssri','pde5','info','Fluoxetine inhibits CYP2D6 - PDE5 runs hotter. Also causes delayed ejaculation.'],['bp','pde5','warn','Propranolol + PDE5 = additive hypotension. Halve sildenafil on tadalafil days.'],['bp','pde5','info','Propranolol right before sex can impair erection. Use it for work.'],['aas','pde5','info','Primo and mast lower E2. Crashed E2 wrecks erections.'],['aas','pde5','info','Tren and NPP raise prolactin - direct cause of ED.'],['aas','pde5','info','High hematocrit degrades erection quality. Donate above 52%.'],['glp1','glp1','info','Never run tirzepatide and retatrutide together.'],['glp1','abx','warn','GLP-1 shifts doxy absorption. 2h from minerals, extra water.'],['abx','supp','warn','Minerals and dairy bind doxycycline. Minerals at 21:00, doxy at 10:00.'],['aas','supp','info','Creatine raises serum creatinine - tell your doctor.'],['ghs','glp1','ok','Tesamorelin raises IGF-1; the GLP-1 partly offsets it.'],['nad','stim','info','NAD+ flushes and bumps pulse. Pin early.'],['skin','supp','ok','GHK-Cu is copper - zinc at night balances the load.'],['supp','glp1','ok','Electrolytes and psyllium are not optional on a GLP-1.'],['heal','heal','ok','BPC, TB-500, KPV and GHK-Cu share a syringe.'],['aas','aas','info','Multiple oils: watch estradiol and prolactin.']];
+const RULES=[['ssri','pde5','info','Fluoxetine inhibits CYP2D6 - PDE5 runs hotter.'],['bp','pde5','warn','Propranolol + PDE5 = additive hypotension.'],['bp','pde5','info','Propranolol before sex can impair erection.'],['aas','pde5','info','Primo and mast lower E2. Crashed E2 wrecks erections.'],['aas','pde5','info','Tren and NPP raise prolactin - direct cause of ED.'],['aas','pde5','info','High hematocrit degrades erection quality. Donate above 52%.'],['glp1','glp1','info','Never run tirzepatide and retatrutide together.'],['glp1','abx','warn','GLP-1 shifts doxy absorption. 2h from minerals.'],['abx','supp','warn','Minerals and dairy bind doxycycline.'],['aas','supp','info','Creatine raises serum creatinine.'],['ghs','glp1','ok','Tesamorelin raises IGF-1; the GLP-1 partly offsets it.'],['nad','stim','info','NAD+ flushes and bumps pulse. Pin early.'],['skin','supp','ok','GHK-Cu is copper - zinc at night balances the load.'],['supp','glp1','ok','Electrolytes and psyllium are not optional on a GLP-1.'],['heal','heal','ok','BPC, TB-500, KPV and GHK-Cu share a syringe.'],['aas','aas','info','Multiple oils: watch estradiol and prolactin.']];
 function flags(){const items=[...S.compounds.filter(c=>c.status==='active'),...S.meds,...S.supps.filter(s=>s.on)];const h=[];
 for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++){const a=items[i],b=items[j];
 RULES.forEach(([x,y,l,t])=>{if((a.cls===x&&b.cls===y)||(a.cls===y&&b.cls===x))h.push([l,t,`${a.name} + ${b.name}`]);});}
 const se={};return h.filter(x=>{const k=x[1]+x[2];if(se[k])return false;se[k]=1;return true;});}
 function vFlags(){const f=flags();return `<div class="card"><h3>Flags (${f.length})</h3>${f.map(([l,t,w])=>`<div class="item"><div class="b"><div class="nm ${l==='warn'?'warn':''}">${esc(t)}</div><div class="meta">${esc(w)}</div></div></div>`).join('')}</div>`;}
-function vPlan(){return `<div class="card"><h3>Reality check</h3><div class="meta">The GLP-1 moves the scale. Protein and lifting decide whether you lose fat or muscle. At 5'4 and 185 with a 37-38 inch waist, you have never been lean.</div></div>
-<div class="card"><h3>GLP-1 switch</h3><div class="meta">2.5mg tirz was a tolerance dose. Months at 2.5 with skipped weeks = never actually run.</div>
-<div class="meta"><b>Bridge:</b> tirz 5mg if you have doses left.</div>
-<div class="meta"><b>Reta:</b> 2mg x2wk, then 4mg. 6mg if 4 stalls.</div><div class="meta"><b>Never both.</b></div></div>
-<div class="card"><h3>Oil protocol — one barrel</h3><div class="meta"><b>Now to 11/2:</b> Mon/Thu one syringe: test cyp 75mg + primo 100mg.</div><div class="meta"><b>From 11/2:</b> EOD one syringe: test 40mg + primo 50mg + mast 50mg.</div><div class="note">Watch E2.</div></div>
-<div class="card"><h3>Targets</h3><div class="meta">Protein 150-170g. 1700-1900 kcal. 1-2 lb/week. Waist at navel weekly. 3x full body. Screen for apnea.</div></div>`;}
+function vPlan(){return `<div class="card"><h3>Reality check</h3><div class="meta">The GLP-1 moves the scale. Protein and lifting decide whether you lose fat or muscle.</div></div>
+<div class="card"><h3>GLP-1 switch</h3><div class="meta"><b>Bridge:</b> tirz 5mg if you have doses left.</div><div class="meta"><b>Reta:</b> 2mg x2wk, then 4mg. 6mg if stalled.</div><div class="meta"><b>Never both.</b></div></div>
+<div class="card"><h3>Oil protocol</h3><div class="meta"><b>Now to 11/2:</b> Mon/Thu: test cyp 75mg + primo 100mg.</div><div class="meta"><b>From 11/2:</b> EOD: test 40 + primo 50 + mast 50.</div></div>
+<div class="card"><h3>Targets</h3><div class="meta">Protein 150-170g. 1700-1900 kcal. 1-2 lb/wk. Waist under 30 in. 3x full body.</div></div>`;}
 const PROTO=[['GHK-Cu 50 mg','3mL = 16.67mg/mL','1mg x15d then 2mg x15d','30 on / 30 off'],['ARA-290 12 mg','2.4mL = 5mg/mL','2mg x1wk then 4mg x28d','Cycle it'],['5-amino-1MQ 100 mg','4mL = 25mg/mL','2.5-5mg SubQ','Caps are pin-free'],['Glutathione 1200 mg','6mL = 200mg/mL','200mg 2-3x/wk IM','Stings SubQ'],['NAD+','assume 1200mg + 12mL','25mg 2x/wk, titrate','Verify label'],['KPV 30 mg','3mL = 10mg/mL','500mcg daily 5/2','Shares barrel with BPC'],['Retatrutide 60 mg','3mL = 20mg/mL','2mg x2wk then 4mg','Taper tirz out'],['Tesamorelin 10 mg','2mL = 5mg/mL','1mg = 20u nightly','Fasted'],['Thymosin a-1 10 mg','2mL = 5mg/mL','1.6mg = 32u 2x/wk','5mg vial needs 1mL'],['Cagrilintide 5 mg','2mL = 2.5mg/mL','0.25mg weekly','Test before Elora'],['Selank 5 mg','2mL = 2.5mg/mL','250mcg daily','2-4 week run'],['VIP 5.8 mg','2mL = 2.9mg/mL','50-100mcg daily','Watch BP']];
 function vProto(){return `<div class="card"><h3>Protocols</h3><table><tr><th>Item</th><th>Recon</th><th>Dose</th><th>Note</th></tr>${PROTO.map(p=>`<tr><td><b>${p[0]}</b></td><td class="meta">${p[1]}</td><td>${p[2]}</td><td class="meta">${p[3]}</td></tr>`).join('')}</table></div>`;}
 function vTools(){return `<div class="card"><h3>Calculator</h3><div class="row g3"><div><label>Vial</label><input id="cM" type="number" value="1200"></div><div><label>BAC mL</label><input id="cB" type="number" value="12" step="0.1"></div><div><label>Dose</label><input id="cD" type="number" value="25" step="0.01"></div></div><button class="btn" id="cGo">Calculate</button><div id="cO"></div></div>
@@ -332,15 +438,18 @@ function vTools(){return `<div class="card"><h3>Calculator</h3><div class="row g
 <tr><td><b>2 — Tesa</b></td><td>10mg + 2mL = 5mg/mL</td><td><b>20u</b> nightly</td><td>~9d</td></tr>
 <tr><td><b>3 — KPV</b></td><td>30mg + 3mL = 10mg/mL</td><td><b>5u</b> daily</td><td>~59d</td></tr></table>
 <div class="note">NovoPen, 1u = 0.01mL. Prime 2u.</div></div>
-<div class="card"><h3>Backup</h3><div class="fl"><button class="btn sec sm" id="exp">Export JSON</button><label class="btn sec sm" style="margin:0">Restore<input type="file" id="imp" accept=".json" style="display:none"></label></div></div>`;}
+<div class="card"><h3>Backup</h3><div class="fl"><button class="btn sec sm" id="exp">Export JSON</button><label class="btn sec sm" style="margin:0">Restore<input type="file" id="imp" accept=".json" style="display:none"></label></div>
+<div class="note">Photos are not in the JSON - they live in IndexedDB.</div></div>`;}
 document.addEventListener('click',e=>{if(e.target.id!=='cGo')return;const g=id=>document.getElementById(id);
 const m=+g('cM').value,b=+g('cB').value,d=+g('cD').value;if(!m||!b||!d){g('cO').innerHTML='<div class="note warn">Fill all fields</div>';return;}
-const c=m/b,v=d/c;g('cO').innerHTML=`<div class="note"><b>${c.toFixed(2)} per mL</b><br>Draw <b>${(v*100).toFixed(1)} units</b> for ${d}<br>${(m/d).toFixed(1)} doses per vial</div>`;});
+const c=m/b,v=d/c;g('cO').innerHTML=`<div class="note"><b>${c.toFixed(2)} per mL</b><br>Draw <b>${(v*100).toFixed(1)} units</b> for ${d}</div>`;});
 document.addEventListener('click',e=>{if(e.target.id!=='exp')return;
 const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');
 a.href=URL.createObjectURL(b);a.download='stack-backup-'+t0()+'.json';a.click();});
 document.addEventListener('change',e=>{if(e.target.id!=='imp')return;const f=e.target.files[0];if(!f)return;
 const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();render();alert('Restored');}catch(x){alert('Bad file');}};r.readAsText(f);});
+const origRender=render;
+render=function(){origRender();if(S.tab==='body')loadPhotos();};
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 render();
 </script>
