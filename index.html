@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Stack</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stack">
+<style>
+:root{--bg:#0b0b0c;--card:#151517;--bd:#26262a;--fg:#e8e8ea;--mut:#8a8a92;--acc:#4c8dff;--warn:#ff5c5c;--ok:#35c46a;--oil:#f5a524}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,Inter,system-ui,sans-serif;font-size:15px;line-height:1.45}
+body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 20px)}
+.wrap{max-width:720px;margin:0 auto;padding:14px}
+h1{font-size:20px;font-weight:600;margin:0 0 2px}.sub{font-size:12px;color:var(--mut)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 0;border-bottom:1px solid var(--bd);margin-bottom:14px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:7px 12px;border-radius:9px;border:1px solid transparent;background:transparent;color:var(--mut);font-size:13px;font-family:inherit;cursor:pointer}
+.tab.on{background:var(--card);color:var(--fg);border-color:var(--bd);font-weight:600}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h3{font-size:12px;font-weight:600;margin:0 0 10px;color:var(--mut);letter-spacing:.05em;text-transform:uppercase}
+.row{display:grid;gap:8px;margin-bottom:8px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+label{font-size:11px;color:var(--mut);display:block;margin-bottom:3px}
+input,select{width:100%;background:#1d1d20;color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:9px;font-size:14px;font-family:inherit}
+input:focus,select:focus{outline:none;border-color:var(--acc)}
+button{font-family:inherit;cursor:pointer}
+.btn{background:var(--acc);color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:14px;font-weight:600}
+.btn.sec{background:#232326;color:var(--fg)}
+.btn.sm{padding:6px 11px;font-size:12.5px}
+.x{background:transparent;border:none;color:var(--mut);font-size:17px;padding:2px 6px}
+.item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}
+.item:last-child{border-bottom:none}.item .b{flex:1;min-width:0}
+.nm{font-weight:600;font-size:14px}.meta{font-size:12px;color:var(--mut);margin-top:2px}
+.badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#232326;color:var(--mut);margin-left:5px}
+.tl{border-left:2px solid var(--bd);margin-left:6px}
+.ev{position:relative;padding:0 0 14px 16px}
+.ev:before{content:'';position:absolute;left:-6px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--bd)}
+.ev.rx:before{background:var(--ok)}.ev.pin:before{background:var(--acc)}.ev.iso:before{background:var(--oil)}.ev.supp:before{background:#a855f7}
+.tm{font-size:12px;font-weight:600;color:var(--mut)}
+.warn{color:var(--warn)}.ok{color:var(--ok)}.empty{color:var(--mut);font-size:13px;padding:8px 0}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-size:11px;color:var(--mut);font-weight:600;padding:6px;border-bottom:1px solid var(--bd)}
+td{padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}tr:last-child td{border-bottom:none}
+.note{font-size:12px;color:var(--mut);margin-top:8px}
+.fl{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.editb{background:#1d1d20;border:1px solid var(--acc);border-radius:12px;padding:14px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Stack</h1>
+<div class="sub" id="sub"></div>
+<div class="tabs" id="tabs"></div>
+<div id="view"></div>
+</div>
+<script>
+const KEY='stack_v1';
+const CLS=[['glp1','GLP-1'],['amylin','Amylin'],['aas','Oil'],['oral','Oral AAS'],['hcg','hCG'],['ghs','GH secretagogue'],['nad','NAD+'],['heal','Healing peptide'],['skin','Skin peptide'],['mito','Metabolic'],['stim','Stimulant'],['ssri','SSRI'],['abx','Antibiotic'],['bp','BP med'],['pde5','PDE5'],['supp','Supplement'],['rx','Other Rx']];
+const ROUTE=[['subq','SubQ'],['im','IM'],['iv','IV'],['oral','Oral'],['nasal','Nasal']];
+const FREQ=[['daily','Daily'],['bid','2x daily'],['eod','Every other day'],['2xw','2x / wk'],['3xw','3x / wk'],['weekly','Weekly'],['prn','As needed']];
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const SITES=['Abdomen L','Abdomen R','Thigh L','Thigh R','Glute L','Glute R','Delt L','Delt R'];
+const cN=i=>(CLS.find(c=>c[0]===i)||['','Other'])[1];
+const rN=i=>(ROUTE.find(c=>c[0]===i)||['',''])[1];
+const fN=i=>(FREQ.find(c=>c[0]===i)||['',''])[1];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const t0=()=>new Date().toISOString().slice(0,10);
+const conc=c=>c.bac>0?c.mg/c.bac:0;
+const vol=(c,d)=>{const k=conc(c);return k>0?d/k:0;};
+const un=(c,d)=>vol(c,d)*100;
+const pins=c=>(!c.route||c.route==='oral')?0:(c.freq==='daily'?7:c.freq==='bid'?14:c.freq==='eod'?3.5:c.freq==='2xw'?2:c.freq==='3xw'?3:c.freq==='weekly'?1:0);
+let S=load();
+function mk(n,cls,route,mg,bac,dose,f,t,t2,site,note){return{id:uid(),name:n,cls:cls,route:route,mg:mg,bac:bac,dose:dose,freq:f,time:t,time2:t2||'',site:site,note:note||'',start:t0(),used:0,status:'active'};}
+function fresh(){return{tab:'today',editing:null,compounds:[
+mk('NAD+','nad','subq',1200,12,25,'2xw','07:30','','Abdomen L','Pin early, not at night.'),
+mk('BPC-157','heal','subq',10,2,0.25,'bid','08:00','20:00','Abdomen R','250-500mcg 2x/day.'),
+mk('GHK-Cu','skin','subq',50,3,1,'daily','20:00','','Thigh L','Combined cartridge with BPC. 30 on / 30 off.'),
+mk('Thymosin a-1','heal','subq',10,2,1.6,'2xw','08:00','','Glute R','1.6mg 2x/wk.'),
+mk('Glutathione','mito','im',1200,6,200,'2xw','08:00','','Delt L','IM. Stings SubQ.'),
+mk('hCG','hcg','subq',5000,2,250,'2xw','08:00','','Abdomen L','250iu x2.'),
+mk('Tesamorelin','ghs','subq',10,2,1,'daily','21:30','','Thigh R','Fasted, 2h after food.'),
+mk('Tirzepatide','glp1','subq',15,1.5,5,'weekly','08:00','','Abdomen R','BRIDGE at 5mg. 2.5mg was never a real dose.'),
+mk('Test Cyp','aas','im',200,5,75,'2xw','09:00','','Glute L','75mg Mon/Thu.'),
+mk('Primo','aas','im',100,10,100,'2xw','09:00','','Glute R','Same barrel as test. Watch E2.'),
+mk('KPV','heal','subq',30,3,0.5,'daily','08:00','','Abdomen R','500mcg, 5 on / 2 off.'),
+mk('Retatrutide','glp1','subq',60,3,2,'weekly','08:00','','Abdomen L','START 2mg x2wk, then 4mg. Never with tirz.'),
+mk('TB-500','heal','subq',10,2,2.5,'2xw','08:00','','Glute L','Out of stock.')
+],meds:[
+{id:uid(),name:'Lisdexamfetamine',cls:'stim',dose:'50 mg',freq:'daily',days:[],time:'07:00',start:t0()},
+{id:uid(),name:'Fluoxetine',cls:'ssri',dose:'20 mg',freq:'daily',days:[],time:'08:00',start:t0()},
+{id:uid(),name:'Doxycycline',cls:'abx',dose:'100 mg',freq:'daily',days:[],time:'10:00',start:t0()},
+{id:uid(),name:'Tadalafil',cls:'pde5',dose:'5 mg',freq:'daily',days:[],time:'08:00',start:t0()},
+{id:uid(),name:'Propranolol',cls:'bp',dose:'10-20 mg',freq:'prn',days:[],time:'PRN',start:t0()},
+{id:uid(),name:'Sildenafil',cls:'pde5',dose:'50 mg',freq:'prn',days:[],time:'PRN',start:t0()}
+],supps:[
+{id:uid(),name:'Whey isolate',cls:'supp',dose:'2 scoops (50g)',freq:'daily',time:'08:00',note:'Dairy - 2h from doxy.'},
+{id:uid(),name:'Creatine monohydrate',cls:'supp',dose:'5 g',freq:'daily',time:'08:00',note:'Raises creatinine on bloods - tell your doctor.'},
+{id:uid(),name:'Electrolytes',cls:'supp',dose:'1 serving',freq:'daily',time:'08:00',note:'Essential on a GLP-1.'},
+{id:uid(),name:'Vitamin D3 + K2',cls:'supp',dose:'4000 IU / 100 mcg',freq:'daily',time:'12:00',note:'With fat.'},
+{id:uid(),name:'Omega-3',cls:'supp',dose:'2-3 g EPA/DHA',freq:'daily',time:'12:00',note:'With food.'},
+{id:uid(),name:'NAC',cls:'supp',dose:'600 mg',freq:'daily',time:'12:00',note:''},
+{id:uid(),name:'Citrus bergamot',cls:'supp',dose:'500 mg',freq:'daily',time:'12:00',note:'Lipids while on oils.'},
+{id:uid(),name:'Psyllium husk',cls:'supp',dose:'5 g',freq:'daily',time:'19:00',note:'GLP-1 constipation.'},
+{id:uid(),name:'Magnesium glycinate',cls:'supp',dose:'400 mg',freq:'daily',time:'21:00',note:'Night, away from doxy.'},
+{id:uid(),name:'Zinc',cls:'supp',dose:'25 mg',freq:'daily',time:'21:00',note:'Balances copper from GHK-Cu.'},
+{id:uid(),name:'Multivitamin',cls:'supp',dose:'1 tab',freq:'daily',time:'21:00',note:'Night - minerals bind doxy.'},
+{id:uid(),name:'Berberine',cls:'supp',dose:'500 mg',freq:'bid',time:'08:00',note:'Additive glucose lowering with GLP-1.'},
+{id:uid(),name:'Taurine',cls:'supp',dose:'2 g',freq:'daily',time:'08:00',note:''}
+],storage:[
+{id:uid(),name:'Thymosin a-1 5 mg',cls:'heal',qty:'1 vial',note:'Recon 1mL so 1.6mg = 32u'},
+{id:uid(),name:'Anavar',cls:'oral',qty:'inventory',note:'HOLD 25-50mg'},
+{id:uid(),name:'Dianabol',cls:'oral',qty:'inventory',note:'HOLD'},
+{id:uid(),name:'Winstrol',cls:'oral',qty:'inventory',note:'HOLD'},
+{id:uid(),name:'Clenbuterol',cls:'stim',qty:'inventory',note:'HOLD - cardiac load'},
+{id:uid(),name:'Cagrilintide 5 mg',cls:'amylin',qty:'1 vial',note:'Test amylin before Elora'},
+{id:uid(),name:'E250 test E 250',cls:'aas',qty:'3 x 10 mL',note:''},
+{id:uid(),name:'Mast Prop 100',cls:'aas',qty:'3 x 10 mL',note:'Committed phase'},
+{id:uid(),name:'Tren A 100',cls:'aas',qty:'2 x 10 mL',note:'Last push'},
+{id:uid(),name:'NPP 100',cls:'aas',qty:'2 x 10 mL',note:''},
+{id:uid(),name:'C250',cls:'aas',qty:'3 x 10 mL',note:''},
+{id:uid(),name:'S250',cls:'aas',qty:'1 x 10 mL',note:'Confirm ester'},
+{id:uid(),name:'YK-11 50 mg/mL',cls:'oral',qty:'1 vial',note:''},
+{id:uid(),name:'SLU-PP-32',cls:'mito',qty:'1 vial',note:''},
+{id:uid(),name:'Amino The Shredder',cls:'supp',qty:'1 vial',note:''},
+{id:uid(),name:'HVY AM Shred',cls:'supp',qty:'2 vials',note:''},
+{id:uid(),name:'HVY Pre Shred',cls:'supp',qty:'2 vials',note:''},
+{id:uid(),name:'HVY L-Glutamine',cls:'supp',qty:'600 mL',note:''},
+{id:uid(),name:'ARA-290 12 mg',cls:'heal',qty:'5 vials',note:'2.4mL = 5mg/mL'},
+{id:uid(),name:'5-amino-1MQ 100 mg',cls:'mito',qty:'2 vials + caps',note:'Use the caps - zero pins'},
+{id:uid(),name:'Selank 5 mg',cls:'heal',qty:'4 vials',note:''},
+{id:uid(),name:'VIP 5.8 mg',cls:'heal',qty:'4 vials',note:''},
+{id:uid(),name:'hCG 2000 iu',cls:'hcg',qty:'3 vials',note:''},
+{id:uid(),name:'Tirzepatide 15 mg',cls:'glp1',qty:'1 vial',note:'spare'},
+{id:uid(),name:'GHK-Cu 50 mg',cls:'skin',qty:'4 vials',note:'spare'},
+{id:uid(),name:'Glutathione 1200 mg',cls:'mito',qty:'10+ vials',note:'spare'},
+{id:uid(),name:'NAD+ large vial',cls:'nad',qty:'6 vials',note:'VERIFY mg'},
+{id:uid(),name:'Retatrutide 60 mg',cls:'glp1',qty:'2 vials',note:'incoming'},
+{id:uid(),name:'KPV 30 mg',cls:'heal',qty:'1 kit',note:'incoming'}
+],log:[]};}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);p.compounds=p.compounds||[];p.meds=p.meds||[];p.supps=p.supps||[];p.storage=p.storage||[];p.log=p.log||[];return p;}}catch(e){}return fresh();}
+function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+const TABS=[['today','Today'],['plan','Plan'],['stack','Stack'],['inv','Inventory'],['sched','Schedule'],['flags','Flags'],['tools','Tools'],['proto','Protocols']];
+function render(){
+document.getElementById('tabs').innerHTML=TABS.map(t=>`<button class="tab ${S.tab===t[0]?'on':''}" data-tab="${t[0]}">${t[1]}</button>`).join('');
+const act=S.compounds.filter(c=>c.status==='active');
+document.getElementById('sub').textContent=`${act.length} compounds · ${S.supps.length} supps · ${S.meds.length} meds · ~${Math.round(act.reduce((a,c)=>a+pins(c),0))} pins/wk`;
+let html='';
+if(S.editing){const it=(S[S.editing.k]||[]).find(x=>x.id===S.editing.id);
+if(it)html+=`<div class="editb"><h3 style="font-size:12px;color:var(--mut);margin:0 0 10px;text-transform:uppercase">Edit ${esc(it.name)}</h3>
+<div class="row g2"><div><label>Name</label><input id="eN" value="${esc(it.name)}"></div><div><label>Dose</label><input id="eD" value="${esc(it.dose||'')}"></div></div>
+<div class="row g2"><div><label>Time</label><input id="eT" type="time" value="${it.time&&it.time!=='PRN'?it.time:'08:00'}"></div><div><label>Frequency</label><select id="eF">${FREQ.map(f=>`<option value="${f[0]}" ${it.freq===f[0]?'selected':''}>${f[1]}</option>`).join('')}</select></div></div>
+${it.mg!==undefined?`<div class="row g2"><div><label>Vial mg</label><input id="eM" type="number" value="${it.mg}"></div><div><label>BAC mL</label><input id="eB" type="number" step="0.1" value="${it.bac}"></div></div>`:''}
+<div class="row"><div><label>Note</label><input id="eNo" value="${esc(it.note||'')}"></div></div>
+<div class="fl"><button class="btn" id="eSave">Save</button><button class="btn sec" id="eCancel">Cancel</button></div></div>`;}
+html+=({today:vToday,plan:vPlan,stack:vStack,inv:vInv,sched:vSched,flags:vFlags,tools:vTools,proto:vProto})[S.tab]();
+document.getElementById('view').innerHTML=html;
+}
+document.addEventListener('click',e=>{
+const t=e.target.closest('[data-tab]');if(t){S.tab=t.dataset.tab;S.editing=null;save();render();return;}
+const ed=e.target.closest('[data-edit]');if(ed){const[k,id]=ed.dataset.edit.split(':');S.editing={k:k,id:id};render();return;}
+if(e.target.id==='eCancel'){S.editing=null;render();return;}
+if(e.target.id==='eSave'){const it=(S[S.editing.k]||[]).find(x=>x.id===S.editing.id);if(it){
+it.name=document.getElementById('eN').value;it.dose=document.getElementById('eD').value;it.freq=document.getElementById('eF').value;
+const tt=document.getElementById('eT').value;it.time=it.freq==='prn'?'PRN':tt;
+if(document.getElementById('eM')){it.mg=+document.getElementById('eM').value;it.bac=+document.getElementById('eB').value;}
+it.note=document.getElementById('eNo').value;S.editing=null;save();render();}return;}
+const d=e.target.closest('[data-del]');if(d){const[k,id]=d.dataset.del.split(':');S[k]=S[k].filter(x=>x.id!==id);save();render();return;}
+const u=e.target.closest('[data-used]');if(u){const c=S.compounds.find(x=>x.id===u.dataset.used);if(c){c.used=(c.used||0)+1;save();render();}return;}
+});
+function occurs(x,d){const s=new Date(x.start+'T00:00:00'),dt=new Date(d+'T00:00:00');if(dt<s)return false;const df=Math.round((dt-s)/864e5);
+if(x.freq==='daily'||x.freq==='bid')return true;if(x.freq==='eod')return df%2===0;if(x.freq==='weekly')return df%7===0;
+if(x.freq==='2xw'||x.freq==='3xw')return(x.days||[]).includes(dt.getDay());return false;}
+function vToday(){
+const ds=t0();
+const all=[...S.compounds.filter(c=>c.status==='active'&&occurs(c,ds)).map(x=>({...x,k:'pin'})),
+...S.meds.filter(m=>m.freq!=='prn'&&occurs(m,ds)).map(x=>({...x,k:'rx'})),
+...S.supps.filter(s=>s.freq!=='prn'&&occurs(s,ds)).map(x=>({...x,k:'supp'}))];
+const iso=[{time:'10:00',name:'Doxycycline window',note:'2h clear of dairy, calcium, iron, zinc, antacids. Upright 30 min.',k:'iso'}];
+const merged=[...all,...iso].sort((a,b)=>String(a.time).localeCompare(String(b.time)));
+return `<div class="card"><h3>Today — ${DAYS[new Date().getDay()]} ${ds}</h3><div class="tl">${merged.map(x=>`
+<div class="ev ${x.k}"><div class="tm">${x.time}${x.time2?' + '+x.time2:''}</div><div class="nm">${esc(x.name)}</div>
+${x.dose?`<div class="meta">${esc(x.dose)}${x.route&&x.route!=='oral'?' · '+rN(x.route):''}${x.site?' · '+x.site:''}</div>`:''}
+${x.note?`<div class="meta">${esc(x.note)}</div>`:''}</div>`).join('')}</div></div>
+<div class="card"><h3>As needed</h3>${S.meds.filter(m=>m.freq==='prn').map(m=>`<div class="item"><div class="b"><div class="nm">${esc(m.name)}</div><div class="meta">${esc(m.dose)}</div></div></div>`).join('')}
+<div class="note">Propranolol for work presentations only - 30-60 min before, not as a pre-sex drug. Sildenafil 50mg, 1h before, empty stomach.</div></div>`;
+}
+function vPlan(){return `<div class="card"><h3>Reality check</h3><div class="meta">The GLP-1 moves the scale. Protein and lifting decide whether you lose fat or muscle. At 5'4 and 185 with a 37-38 inch waist, you have never been lean - composition is the whole game.</div></div>
+<div class="card"><h3>GLP-1 switch</h3><div class="meta">2.5mg tirzepatide is a tolerance dose, not a therapeutic one. Months at 2.5 with skipped weeks means you never actually ran it.</div>
+<div class="meta"><b>Bridge:</b> tirz 5mg this week if you have doses left.</div>
+<div class="meta"><b>Reta:</b> 2mg for 2 weeks, then 4mg. 6mg if 4 stalls. 4mg was never the ceiling.</div>
+<div class="meta"><b>Never both at once.</b></div></div>
+<div class="card"><h3>Weight-loss adds by pin cost</h3><table><tr><th>Add</th><th>Pins</th><th>Verdict</th></tr>
+<tr><td><b>5-amino-1MQ caps</b></td><td>0</td><td>Start now</td></tr>
+<tr><td>Titrate the GLP-1</td><td>0</td><td>The actual fix</td></tr>
+<tr><td>Creatine + whey</td><td>0</td><td>Biggest lever</td></tr>
+<tr><td>Anavar 25-50mg</td><td>0</td><td>Hold for 11/2</td></tr>
+<tr><td>Clen</td><td>0</td><td>Hold</td></tr></table></div>
+<div class="card"><h3>Oil protocol — one barrel</h3><div class="meta"><b>Now to 11/2:</b> Mon/Thu one syringe: test cyp 75mg + primo 100mg.</div><div class="meta"><b>From 11/2:</b> EOD one syringe: test cyp 40mg + primo 50mg + mast prop 50mg.</div><div class="note">Watch E2. Primo and mast both lower it, and crashed E2 wrecks erections.</div></div>
+<div class="card"><h3>Targets</h3><div class="meta">Protein 150-170g/day. 1700-1900 kcal. 1-2 lb/week. Track waist at the navel. 3x full body. Screen for apnea.</div></div>`;}
+function vStack(){
+const sec=(arr,k,label)=>`<div class="card"><h3>${label}</h3>${arr.map(x=>{const oral=!x.route||x.route==='oral';const c_=conc(x),u=un(x,x.dose);
+return `<div class="item"><div class="b"><div class="nm" data-edit="${k}:${x.id}">${esc(x.name)}<span class="badge">${cN(x.cls)}</span>${x.route&&!oral?`<span class="badge">${rN(x.route)}</span>`:''}${pins(x)?`<span class="badge">${pins(x).toFixed(1)}/wk</span>`:''}</div>
+<div class="meta">${oral?esc(x.dose||''):`${x.mg} in ${x.bac}mL = ${c_.toFixed(2)}/mL · ${x.dose} = <b>${u.toFixed(1)}u</b>`} · ${fN(x.freq)} ${x.time}${x.time2?' + '+x.time2:''}${x.site?' · '+x.site:''}</div>
+${x.note?`<div class="meta">${esc(x.note)}</div>`:''}</div><div style="display:flex;flex-direction:column"><button class="x" data-del="${k}:${x.id}">×</button>${k==='compounds'?`<button class="x" data-used="${x.id}">−</button>`:''}</div></div>`;}).join('')||'<div class="empty">None.</div>'}</div>`;
+return sec(S.compounds.filter(c=>c.status==='active'),'compounds','Active compounds')+sec(S.meds,'meds','Medications')+sec(S.supps,'supps','Supplements')+
+`<div class="card"><h3>Add supplement</h3><div class="row g3"><div><label>Name</label><input id="pN"></div><div><label>Dose</label><input id="pD"></div><div><label>Time</label><input id="pT" type="time" value="12:00"></div></div>
+<div class="row g2"><div><label>Frequency</label><select id="pF">${FREQ.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join('')}</select></div><div><label>Note</label><input id="pNo"></div></div><button class="btn" id="pAdd">Add</button></div>`;}
+document.addEventListener('click',e=>{if(e.target.id!=='pAdd')return;const g=id=>document.getElementById(id);
+if(!g('pN').value){alert('Name required');return;}
+S.supps.push({id:uid(),name:g('pN').value,cls:'supp',dose:g('pD').value,freq:g('pF').value,time:g('pT').value,note:g('pNo').value,start:t0()});save();render();});
+function vInv(){return `<div class="card"><h3>Inventory</h3><table><tr><th>Item</th><th>Qty</th><th>Note</th><th></th></tr>${S.storage.map(s=>`<tr><td data-edit="storage:${s.id}">${esc(s.name)}<div class="meta">${cN(s.cls)}</div></td><td>${esc(s.qty)}</td><td class="meta">${esc(s.note||'')}</td><td><button class="x" data-del="storage:${s.id}">×</button></td></tr>`).join('')}</table></div>`;}
+function vSched(){const all=[...S.compounds.filter(c=>c.status==='active'),...S.meds.filter(m=>m.freq!=='prn'),...S.supps.filter(s=>s.freq!=='prn')];let o='';
+for(let i=0;i<10;i++){const d=new Date();d.setDate(d.getDate()+i);const ds=d.toISOString().slice(0,10);
+const it=all.filter(x=>occurs(x,ds)).sort((a,b)=>String(a.time).localeCompare(String(b.time)));
+o+=`<div class="ev"><div class="tm">${DAYS[d.getDay()]} ${ds}${i===0?' — today':''} · ${it.length} items</div><div class="meta">${it.map(x=>x.name).join(' · ')}</div></div>`;}
+return `<div class="card"><h3>Next 10 days</h3><div class="tl">${o}</div></div>`;}
+const RULES=[['ssri','pde5','info','Fluoxetine inhibits CYP2D6 - PDE5 runs hotter. It also causes delayed ejaculation.'],['bp','pde5','warn','Propranolol + PDE5 = additive hypotension, worst with alcohol. Halve sildenafil on tadalafil days.'],['bp','pde5','info','Propranolol right before sex can slightly impair erection. Use it for work anxiety.'],['aas','pde5','info','Primo and mast lower estradiol. Crashed E2 wrecks erections - check E2 before blaming the pill.'],['aas','pde5','info','Tren and NPP raise prolactin. High prolactin is a direct cause of ED.'],['aas','pde5','info','High hematocrit degrades erection quality. Donate above 52%.'],['glp1','glp1','info','Never run tirzepatide and retatrutide together. Pick one and taper.'],['glp1','abx','warn','GLP-1 delays gastric emptying and shifts doxy absorption. 2h from minerals, extra water.'],['abx','supp','warn','Minerals and dairy bind doxycycline. Mineral supps at 21:00, doxy at 10:00.'],['aas','supp','info','Creatine raises serum creatinine - tell your doctor. Omega-3 and bergamot help lipids on oils.'],['ghs','glp1','ok','Tesamorelin raises IGF-1 and worsens insulin resistance; the GLP-1 partly offsets it.'],['nad','stim','info','NAD+ flushes and bumps pulse. Pin early.'],['skin','supp','ok','GHK-Cu is copper - zinc at night balances the load.'],['mito','supp','info','Injected glutathione plus oral NAC is partly redundant.'],['supp','glp1','ok','Electrolytes and psyllium are not optional on a GLP-1.'],['heal','heal','ok','BPC, TB-500, KPV and GHK-Cu share a syringe.'],['aas','aas','info','Multiple oils: watch estradiol and prolactin if tren or NPP enter.']];
+function flags(){const items=[...S.compounds.filter(c=>c.status==='active'),...S.meds,...S.supps];const h=[];
+for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++){const a=items[i],b=items[j];
+RULES.forEach(([x,y,l,t])=>{if((a.cls===x&&b.cls===y)||(a.cls===y&&b.cls===x))h.push([l,t,`${a.name} + ${b.name}`]);});}
+const se={};return h.filter(x=>{const k=x[1]+x[2];if(se[k])return false;se[k]=1;return true;});}
+function vFlags(){const f=flags();return `<div class="card"><h3>Flags (${f.length})</h3>${f.map(([l,t,w])=>`<div class="item"><div class="b"><div class="nm ${l==='warn'?'warn':''}">${esc(t)}</div><div class="meta">${esc(w)}</div></div></div>`).join('')}</div>`;}
+const PROTO=[['GHK-Cu 50 mg','3mL = 16.67mg/mL','1mg x15d then 2mg x15d','30 on / 30 off'],['ARA-290 12 mg','2.4mL = 5mg/mL','2mg x1wk then 4mg x28d','Cycle it'],['5-amino-1MQ 100 mg','4mL = 25mg/mL','2.5-5mg SubQ','Caps are pin-free'],['Glutathione 1200 mg','6mL = 200mg/mL','200mg 2-3x/wk IM','Stings SubQ'],['NAD+','assume 1200mg + 12mL','25mg 2x/wk, titrate','Verify label'],['KPV 30 mg','3mL = 10mg/mL','500mcg daily 5/2','Shares barrel with BPC'],['Retatrutide 60 mg','3mL = 20mg/mL','2mg x2wk then 4mg, 6mg if stalled','Taper tirz out'],['Tesamorelin 10 mg','2mL = 5mg/mL','1mg = 20u nightly','Fasted'],['Thymosin a-1 10 mg','2mL = 5mg/mL','1.6mg = 32u 2x/wk','5mg vial needs 1mL'],['Cagrilintide 5 mg','2mL = 2.5mg/mL','0.25mg weekly','Test before Elora'],['Selank 5 mg','2mL = 2.5mg/mL','250mcg daily','2-4 week run'],['VIP 5.8 mg','2mL = 2.9mg/mL','50-100mcg daily','Watch BP']];
+function vProto(){return `<div class="card"><h3>Protocols</h3><table><tr><th>Item</th><th>Recon</th><th>Dose</th><th>Note</th></tr>${PROTO.map(p=>`<tr><td><b>${p[0]}</b></td><td class="meta">${p[1]}</td><td>${p[2]}</td><td class="meta">${p[3]}</td></tr>`).join('')}</table></div>`;}
+function vTools(){return `<div class="card"><h3>Reconstitution calculator</h3><div class="row g3"><div><label>Vial</label><input id="cM" type="number" value="1200"></div><div><label>BAC mL</label><input id="cB" type="number" value="12" step="0.1"></div><div><label>Dose</label><input id="cD" type="number" value="25" step="0.01"></div></div><button class="btn" id="cGo">Calculate</button><div id="cO"></div></div>
+<div class="card"><h3>Pen fill sheet</h3><table><tr><th>Pen</th><th>Recon</th><th>Dial</th><th>Lasts</th></tr>
+<tr><td><b>1 — BPC+GHK</b></td><td>BPC 10mg + GHK 25mg in 3mL</td><td><b>12u</b> 2x/day</td><td>~11d</td></tr>
+<tr><td><b>2 — Tesa</b></td><td>10mg + 2mL = 5mg/mL</td><td><b>20u</b> nightly</td><td>~9d</td></tr>
+<tr><td><b>3 — KPV</b></td><td>30mg + 3mL = 10mg/mL</td><td><b>5u</b> daily</td><td>~59d</td></tr></table>
+<div class="note">NovoPen, 1u = 0.01mL. Prime 2u. GHK 50mg + 6mL, take 3mL to recon a BPC 10mg vial = 2 cartridges.</div></div>
+<div class="card"><h3>Backup</h3><div class="fl"><button class="btn sec sm" id="exp">Export JSON</button><label class="btn sec sm" style="margin:0">Restore<input type="file" id="imp" accept=".json" style="display:none"></label></div></div>`;}
+document.addEventListener('click',e=>{if(e.target.id!=='cGo')return;const g=id=>document.getElementById(id);
+const m=+g('cM').value,b=+g('cB').value,d=+g('cD').value;if(!m||!b||!d){g('cO').innerHTML='<div class="note warn">Fill all fields</div>';return;}
+const c=m/b,v=d/c;g('cO').innerHTML=`<div class="note"><b>${c.toFixed(2)} per mL</b><br>Draw <b>${(v*100).toFixed(1)} units</b> (${v.toFixed(3)} mL) for ${d}<br>${(m/d).toFixed(1)} doses per vial</div>`;});
+document.addEventListener('click',e=>{if(e.target.id!=='exp')return;
+const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');
+a.href=URL.createObjectURL(b);a.download='stack-backup-'+t0()+'.json';a.click();});
+document.addEventListener('change',e=>{if(e.target.id!=='imp')return;const f=e.target.files[0];if(!f)return;
+const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();render();alert('Restored');}catch(x){alert('Bad file');}};r.readAsText(f);});
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+render();
+</script>
+</body>
+</html>
