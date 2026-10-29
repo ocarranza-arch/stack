@@ -62,7 +62,7 @@ td{padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}tr:last-
 .cell .dn{font-weight:600;font-size:11px}
 .dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
 .dot{width:5px;height:5px;border-radius:50%;background:var(--acc)}
-.dot.oral{background:var(--ok)}.dot.oil{background:var(--oil)}
+.dot.oral{background:var(--ok)}.dot.oil{background:var(--oil)}.dot.one{background:#a855f7}
 .dot.rare{width:7px;height:7px;box-shadow:0 0 0 1.5px var(--bg),0 0 0 2.5px currentColor}
 .bodyfig{display:flex;gap:10px;justify-content:center;margin:8px 0}
 .site{fill:#232326;stroke:#3a3a40;stroke-width:2;cursor:pointer}
@@ -99,7 +99,7 @@ td{padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}tr:last-
 </div>
 <div class="nav" id="nav"></div>
 <script>
-const BUILD='v8';
+const BUILD='v10';
 const KEY='stack_v1';
 const SYK='stack_sync';
 const CLS=[['glp1','GLP-1'],['amylin','Amylin'],['aas','Oil'],['oral','Oral AAS'],['hcg','hCG'],['ghs','GH secretagogue'],['nad','NAD+'],['heal','Healing peptide'],['skin','Skin peptide'],['mito','Metabolic'],['stim','Stimulant'],['ssri','SSRI'],['abx','Antibiotic'],['bp','BP med'],['pde5','PDE5'],['supp','Supplement'],['rx','Other Rx']];
@@ -131,7 +131,7 @@ function mk(n,cls,route,mg,bac,dose,f,t,t2,site,note){
 const days=f==='2xw'?[1,4]:f==='3xw'?[1,3,5]:[];
 return{id:uid(),name:n,cls:cls,route:route,mg:mg,bac:bac,dose:dose,freq:f,days:days,time:t,time2:t2||'',site:site,note:note||'',start:t0(),used:0,status:'active',paused:false};}
 function sp(n,dose,t,note,on){return{id:uid(),name:n,cls:'supp',dose:dose,freq:'daily',time:t,note:note||'',start:t0(),on:!!on};}
-function fresh(){return{tab:'today',editing:null,calMonth:0,selDay:null,done:{},sites:{},weight:[],labs:[],compounds:[
+function fresh(){return{tab:'today',editing:null,calMonth:0,selDay:null,logDate:null,done:{},sites:{},weight:[],labs:[],oneoffs:[],compounds:[
 mk('NAD+','nad','subq',1200,12,25,'2xw','07:30','','Abdomen L','Pin early, not at night.'),
 mk('BPC-157','heal','subq',10,2,0.25,'bid','08:00','20:00','Abdomen R','250-500mcg 2x/day.'),
 mk('GHK-Cu','skin','subq',50,3,1,'daily','20:00','','Thigh L','Combined cartridge with BPC. 30 on / 30 off.'),
@@ -198,13 +198,13 @@ sp('Taurine','2 g','08:00','',false)
 {id:uid(),name:'KPV 30 mg',cls:'heal',qty:'1 kit',note:'incoming'}
 ]};}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);
-['compounds','meds','supps','storage','weight','labs'].forEach(k=>p[k]=p[k]||[]);
+['compounds','meds','supps','storage','weight','labs','oneoffs'].forEach(k=>p[k]=p[k]||[]);
 p.done=p.done||{};p.sites=p.sites||{};
 if(p.calMonth===undefined)p.calMonth=0;
 p.supps.forEach(s=>{if(s.on===undefined)s.on=false;});
 p.compounds.forEach(c=>{if(c.paused===undefined)c.paused=false;
  if((c.freq==='2xw'||c.freq==='3xw'||c.freq==='custom')&&(!c.days||!c.days.length))c.days=c.freq==='2xw'?[1,4]:c.freq==='3xw'?[1,3,5]:[1];});
-const cut=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+const cut=new Date(Date.now()-60*864e5).toISOString().slice(0,10);
 Object.keys(p.done).forEach(d=>{if(d<cut)delete p.done[d];});
 return p;}}catch(e){}return fresh();}
 let pushT=null;
@@ -223,6 +223,7 @@ if(it)html+=`<div class="editb"><h3 style="font-size:12px;color:var(--mut);margi
 <div class="row g2"><div><label>Name</label><input id="eN" value="${esc(it.name)}"></div><div><label>Dose</label><input id="eD" value="${esc(it.dose||'')}"></div></div>
 <div class="row g2"><div><label>Time</label><input id="eT" type="time" value="${it.time&&it.time!=='PRN'?it.time:'08:00'}"></div><div><label>Frequency</label><select id="eF">${FREQ.map(f=>`<option value="${f[0]}" ${it.freq===f[0]?'selected':''}>${f[1]}</option>`).join('')}</select></div></div>
 ${it.mg!==undefined?`<div class="row g2"><div><label>Vial mg</label><input id="eM" type="number" value="${it.mg}"></div><div><label>BAC mL</label><input id="eB" type="number" step="0.1" value="${it.bac}"></div></div>`:''}
+<div class="row g2"><div><label>Start date</label><input id="eS" type="date" value="${it.start||t0()}"></div><div></div></div>
 <div class="row"><div><label>Days (for 2x / 3x / custom)</label><div class="fl" id="eDays">${DAYS.map((d,i)=>`<button class="dy ${(it.days||[]).includes(i)?'on':''}" data-eday="${i}">${d[0]}</button>`).join('')}</div></div></div>
 <div class="row"><div><label>Note</label><input id="eNo" value="${esc(it.note||'')}"></div></div>
 <div class="fl"><button class="btn" id="eSave">Save</button><button class="btn sec" id="eCancel">Cancel</button></div></div>`;}
@@ -238,6 +239,7 @@ if(e.target.id==='eCancel'){S.editing=null;render();return;}
 if(e.target.id==='eSave'){const it=(S[S.editing.k]||[]).find(x=>x.id===S.editing.id);if(it){
 it.name=document.getElementById('eN').value;it.dose=document.getElementById('eD').value;it.freq=document.getElementById('eF').value;
 const tt=document.getElementById('eT').value;it.time=it.freq==='prn'?'PRN':tt;
+const sd=document.getElementById('eS');if(sd&&sd.value)it.start=sd.value;
 const dd=[...document.querySelectorAll('#eDays .dy.on')].map(x=>+x.dataset.eday);
 if(dd.length)it.days=dd;
 if(document.getElementById('eM')){it.mg=+document.getElementById('eM').value;it.bac=+document.getElementById('eB').value;}
@@ -254,11 +256,23 @@ else{S.done[ds][ol.dataset.offlog]=1;const c=S.compounds.find(x=>x.id===ol.datas
 save();render();return;}
 const tg=e.target.closest('[data-tog]');if(tg){const s=S.supps.find(x=>x.id===tg.dataset.tog);if(s){s.on=!s.on;save();render();}return;}
 const pz=e.target.closest('[data-pause]');if(pz){const c=S.compounds.find(x=>x.id===pz.dataset.pause);if(c){c.paused=!c.paused;save();render();}return;}
-const cd=e.target.closest('[data-cell]');if(cd){S.selDay=cd.dataset.cell;save();render();return;}
+const cd=e.target.closest('[data-cell]');if(cd){S.selDay=cd.dataset.cell;S.logDate=cd.dataset.cell;save();render();return;}
 const cm=e.target.closest('[data-mon]');if(cm){S.calMonth+=+cm.dataset.mon;save();render();return;}
 const st=e.target.closest('[data-site]');if(st){S.sites[st.dataset.site]=t0();save();render();return;}
 const pv=e.target.closest('[data-ph]');if(pv){bigPhoto(pv.dataset.ph);return;}
 const pd=e.target.closest('[data-pd]');if(pd){delPhoto(pd.dataset.pd);return;}
+if(e.target.id==='lgGo'){const cid=document.getElementById('lgC').value;const dd=document.getElementById('lgD').value;
+ if(!cid||!dd)return;
+ S.done[dd]=S.done[dd]||{};S.done[dd][cid]=1;
+ const c=S.compounds.find(x=>x.id===cid);if(c)c.used=(c.used||0)+1;
+ save();render();return;}
+const ul=e.target.closest('[data-unlog]');if(ul){const dd=S.logDate||t0();
+ if(S.done[dd]&&S.done[dd][ul.dataset.unlog]){delete S.done[dd][ul.dataset.unlog];
+ const c=S.compounds.find(x=>x.id===ul.dataset.unlog);if(c&&c.used>0)c.used--;save();render();}return;}
+if(e.target.id==='ooGo'){const n=document.getElementById('ooN').value.trim();const dd=document.getElementById('ooD').value;
+ if(!n||!dd){alert('Name and date required');return;}
+ S.oneoffs.push({id:uid(),name:n,d:dd,note:document.getElementById('ooNo').value.trim()});
+ save();render();return;}
 });
 function occurs(x,d){const s=new Date(x.start+'T00:00:00'),dt=new Date(d+'T00:00:00');if(dt<s)return false;const df=Math.round((dt-s)/864e5);
 if(x.freq==='daily'||x.freq==='bid')return true;if(x.freq==='eod')return df%2===0;if(x.freq==='weekly')return df%7===0;
@@ -268,6 +282,27 @@ const a=[...S.compounds.filter(c=>live(c)&&occurs(c,ds)).map(x=>({...x,k:'compou
 ...S.meds.filter(m=>m.freq!=='prn'&&occurs(m,ds)).map(x=>({...x,k:'meds',kind:'rx'}))];
 if(withSupp)a.push(...S.supps.filter(s=>s.on&&s.freq!=='prn'&&occurs(s,ds)).map(x=>({...x,k:'supps',kind:'supp'})));
 return a.sort((x,y)=>String(x.time).localeCompare(String(y.time)));
+}
+function logCard(){
+const dd=S.logDate||t0();
+const done=S.done[dd]||{};
+const logged=Object.keys(done).map(id=>S.compounds.find(c=>c.id===id)||S.meds.find(m=>m.id===id)||S.supps.find(s=>s.id===id)).filter(Boolean);
+return `<div class="card"><h3>Log a dose on any date</h3>
+<div class="row g2"><div><label>Compound</label><select id="lgC">${S.compounds.filter(live).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
+<div><label>Date</label><input id="lgD" type="date" value="${dd}" max="${t0()}"></div></div>
+<button class="btn" id="lgGo">Log it</button>
+${logged.length?`<div class="note">Already logged on ${dd}:</div>${logged.map(x=>`<div class="item"><div class="b"><div class="nm" style="font-size:13px">${esc(x.name)}</div></div><button class="x" data-unlog="${x.id}">×</button></div>`).join('')}`:''}
+<div class="note">For catching up a dose you took earlier.</div></div>`;
+}
+function oneoffCard(){
+const d=t0();
+const list=S.oneoffs.filter(o=>o.d===d);
+return `<div class="card"><h3>One-off injection</h3>
+<div class="row g2"><div><label>Name</label><input id="ooN" placeholder="TB-500 2.5mg"></div><div><label>Date</label><input id="ooD" type="date" value="${d}" max="${t0()}"></div></div>
+<div class="row"><div><label>Note (optional)</label><input id="ooNo" placeholder="site or reason"></div></div>
+<button class="btn" id="ooGo">Log one-off</button>
+${list.length?`<div class="note">Today:</div>${list.map(o=>`<div class="item"><div class="b"><div class="nm" style="font-size:13px">${esc(o.name)}<span class="badge">one-off</span></div>${o.note?`<div class="meta">${esc(o.note)}</div>`:''}</div><button class="x" data-del="oneoffs:${o.id}">×</button></div>`).join('')}`:''}
+<div class="note">For anything not in your stack. Never becomes recurring.</div></div>`;
 }
 function vToday(){
 const ds=t0();const items=dayItems(ds,true);const done=S.done[ds]||{};
@@ -289,7 +324,7 @@ return `<div class="item ${d?'done':''}"><button class="chk ${d?'on':''}" data-o
 <div class="b"><div class="nm">${esc(c.name)}<span class="badge">${fN(c.freq)}${dayStr(c)}</span></div>
 <div class="meta">${c.route&&c.route!=='oral'?doseLbl(c):esc(c.dose||'')}${c.site?' · '+c.site:''}</div></div></div>`;}).join('')}
 <div class="note">Logging here counts the dose without changing the schedule.</div></div>`:''}
-<div class="card"><h3>As needed</h3>${S.meds.filter(m=>m.freq==='prn').map(m=>`<div class="item"><div class="b"><div class="nm">${esc(m.name)}</div><div class="meta">${esc(m.dose)}</div></div></div>`).join('')}</div>`;
+${logCard()}${oneoffCard()}`;
 }
 function chart(pts,lo,hi){
 if(!pts.length)return '';
@@ -425,15 +460,19 @@ for(let i=0;i<first;i++)cells+='<div class="cell blank"></div>';
 for(let d=1;d<=days;d++){
 const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 const it=dayItems(ds,false);
+const oo=S.oneoffs.filter(o=>o.d===ds);
 const rare=it.filter(x=>x.freq==='weekly'||x.freq==='2xw');
-const dots=it.slice(0,4).map(x=>`<span class="dot ${x.kind==='rx'?'oral':x.cls==='aas'?'oil':''} ${rare.includes(x)?'rare':''}"></span>`).join('');
+const dots=it.slice(0,4).map(x=>`<span class="dot ${x.kind==='rx'?'oral':x.cls==='aas'?'oil':''} ${rare.includes(x)?'rare':''}"></span>`).join('')+(oo.length?'<span class="dot one"></span>':'');
 cells+=`<button class="cell ${ds===t0()?'today':''} ${S.selDay===ds?'sel':''}" data-cell="${ds}"><span class="dn">${d}</span><span class="dots">${dots}</span></button>`;
 }
-const det=S.selDay?`<div class="card"><h3>${S.selDay}</h3>${dayItems(S.selDay,false).map(x=>`<div class="item"><div class="b"><div class="nm">${esc(x.name)}</div><div class="meta">${x.time}${x.route&&x.route!=='oral'?' · '+un(x,x.dose).toFixed(1)+' units':''}${x.site?' · '+x.site:''}</div></div></div>`).join('')||'<div class="empty">Nothing.</div>'}</div>`:'';
+const ooDay=S.selDay?S.oneoffs.filter(o=>o.d===S.selDay):[];
+const det=S.selDay?`<div class="card"><h3>${S.selDay}</h3>${dayItems(S.selDay,false).map(x=>`<div class="item"><div class="b"><div class="nm">${esc(x.name)}</div><div class="meta">${x.time}${x.route&&x.route!=='oral'?' · '+un(x,x.dose).toFixed(1)+' units':''}${x.site?' · '+x.site:''}</div></div></div>`).join('')}
+${ooDay.map(o=>`<div class="item"><div class="b"><div class="nm">${esc(o.name)}<span class="badge">one-off</span></div>${o.note?`<div class="meta">${esc(o.note)}</div>`:''}</div></div>`).join('')}
+${!dayItems(S.selDay,false).length&&!ooDay.length?'<div class="empty">Nothing.</div>':''}</div>`:'';
 return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
 <button class="btn sec sm" data-mon="-1">‹</button><b>${MONTHS[m]} ${y}</b><button class="btn sec sm" data-mon="1">›</button></div>
 <div class="cal">${DAYS.map(d=>`<div class="cd">${d[0]}</div>`).join('')}${cells}</div>
-<div class="legend" style="margin-top:12px"><span class="lg"><span class="lgc" style="background:var(--acc)"></span>injection</span><span class="lg"><span class="lgc" style="background:var(--ok)"></span>oral</span><span class="lg"><span class="lgc" style="background:var(--oil)"></span>oil</span></div></div>${det}`;
+<div class="legend" style="margin-top:12px"><span class="lg"><span class="lgc" style="background:var(--acc)"></span>injection</span><span class="lg"><span class="lgc" style="background:var(--ok)"></span>oral</span><span class="lg"><span class="lgc" style="background:var(--oil)"></span>oil</span><span class="lg"><span class="lgc" style="background:#a855f7"></span>one-off</span></div></div>${det}`;
 }
 function vStack(){
 const row=c=>{const oral=!c.route||c.route==='oral';const u=un(c,c.dose);
@@ -443,7 +482,7 @@ return `<div class="item ${c.paused?'off':''}"><button class="pz ${c.paused?'on'
 ${c.note?`<div class="meta">${esc(c.note)}</div>`:''}</div><button class="x" data-del="compounds:${c.id}">×</button></div>`;};
 return `<div class="card"><h3>Active (${S.compounds.filter(live).length})</h3>${S.compounds.filter(live).map(row).join('')||'<div class="empty">None.</div>'}</div>
 <div class="card"><h3>Paused (${S.compounds.filter(c=>c.paused).length})</h3>${S.compounds.filter(c=>c.paused).map(row).join('')||'<div class="empty">None paused.</div>'}
-<div class="note">Tap a name to edit and change its days.</div></div>
+<div class="note">Tap a name to edit days, start date or dose.</div></div>
 <div class="card"><h3>Medications</h3>${S.meds.map(x=>`<div class="item"><div class="b" data-edit="meds:${x.id}"><div class="nm">${esc(x.name)}<span class="badge">${cN(x.cls)}</span></div><div class="meta">${esc(x.dose)} · ${fN(x.freq)} ${x.time}</div></div><button class="x" data-del="meds:${x.id}">×</button></div>`).join('')}</div>`;
 }
 function vSupps(){
@@ -451,8 +490,7 @@ const row=s=>`<div class="item ${s.on?'':'off'}"><button class="chk ${s.on?'on':
 <div class="b" data-edit="supps:${s.id}"><div class="nm">${esc(s.name)}</div><div class="meta">${esc(s.dose||'')}${s.on?' · '+s.time:''}</div></div>
 <button class="x" data-del="supps:${s.id}">×</button></div>`;
 return `<div class="card"><h3>On (${S.supps.filter(s=>s.on).length})</h3>${S.supps.filter(s=>s.on).map(row).join('')||'<div class="empty">None.</div>'}</div>
-<div class="card"><h3>Off (${S.supps.filter(s=>!s.on).length})</h3>${S.supps.filter(s=>!s.on).map(row).join('')||'<div class="empty">None.</div>'}
-<div class="note">Tap a box to switch it on or off.</div></div>
+<div class="card"><h3>Off (${S.supps.filter(s=>!s.on).length})</h3>${S.supps.filter(s=>!s.on).map(row).join('')||'<div class="empty">None.</div>'}</div>
 <div class="card"><h3>Add</h3><div class="row g3"><div><label>Name</label><input id="pN"></div><div><label>Dose</label><input id="pD"></div><div><label>Time</label><input id="pT" type="time" value="12:00"></div></div><button class="btn" id="pAdd">Add</button></div>`;
 }
 document.addEventListener('click',e=>{if(e.target.id!=='pAdd')return;const g=id=>document.getElementById(id);
@@ -526,10 +564,9 @@ location.reload();
 }
 function vTools(){
 const mask=SY.token?SY.token.slice(0,7)+'…'+SY.token.slice(-4):'';
-return `<div class="card"><h3>Build</h3><div class="meta">Build <b>${BUILD}</b> · if this is lower than what you deployed, you are on a cached copy.</div>
+return `<div class="card"><h3>Build</h3><div class="meta">Build <b>${BUILD}</b> · if this is lower than deployed, you are on a cached copy.</div>
 <div class="fl"><button class="btn sec sm" id="fu">Force refresh</button></div></div>
 <div class="card"><h3>Sync</h3>
-<div class="meta">Secret gist as the store. Push from this device, pull on the others.</div>
 <div class="row"><div><label>Token ${mask?'· saved '+mask:''}</label><input id="syT" type="password" placeholder="ghp_..." value="${esc(SY.token)}"></div></div>
 <div class="row"><div><label>Gist ID</label><input id="syG" placeholder="blank = create a new one on first push" value="${esc(SY.gist)}"></div></div>
 <div class="row g2"><div><label>Auto-push</label><select id="syA"><option value="0" ${SY.auto?'':'selected'}>Off</option><option value="1" ${SY.auto?'selected':''}>On</option></select></div><div><label>Last push</label><input value="${SY.last?new Date(SY.last).toLocaleString():'never'}" readonly></div></div>
