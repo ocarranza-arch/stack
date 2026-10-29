@@ -21,16 +21,21 @@ main{padding:12px 14px 20px}
 .card h2{font-size:14px;margin:0 0 8px;font-weight:650;color:var(--tx)}
 .row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
-.chk{width:26px;height:26px;flex:0 0 26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-size:15px;cursor:pointer}
+.chk{width:26px;height:26px;flex:0 0 26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-size:15px;color:transparent;cursor:pointer}
 .chk.on{background:var(--ok);border-color:var(--ok);color:#04140c}
+.chk.sk{background:var(--card2);border-color:var(--warn);color:var(--warn);border-style:dashed}
 .nm{flex:1;min-width:0}
 .nm b{display:block;font-size:15px;font-weight:600}
 .nm span{font-size:12px;color:var(--dim)}
 .dose{background:none;border:0;color:var(--dim);font:inherit;font-size:12px;padding:2px 0;text-align:left;border-bottom:1px dashed var(--dim);cursor:pointer}
-.done .nm b{color:var(--dim);text-decoration:line-through}
+.dose.warn{color:var(--warn);border-color:var(--warn)}
+.done .nm b{color:var(--dim);font-weight:500}
+.struck .nm b{color:var(--warn);text-decoration:line-through}
+.timechip{font-size:11px;color:var(--acc);border:1px solid var(--line);border-radius:6px;padding:1px 5px;margin-right:4px;font-variant-numeric:tabular-nums}
+.timechip.any{color:var(--dim)}
+.timechip.prn{color:var(--warn)}
 .skip{background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:6px 9px;font-size:12px;font-weight:600;cursor:pointer}
 .skip.on{background:var(--card2);color:var(--warn);border-color:var(--warn)}
-.struck .nm b{text-decoration:line-through;color:var(--warn)}
 button{font-family:inherit}
 .btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:11px 14px;font-size:15px;font-weight:650;cursor:pointer;width:100%}
 .btn.alt{background:var(--card2);color:var(--tx);border:1px solid var(--line)}
@@ -44,7 +49,6 @@ label{font-size:12px;color:var(--dim);display:block;margin:8px 0 4px}
 .pill.ok{color:var(--ok);border-color:var(--ok)}
 .pill.warn{color:var(--warn);border-color:var(--warn)}
 .pill.bad{color:var(--bad);border-color:var(--bad)}
-.pill.acc{color:var(--acc);border-color:var(--acc)}
 nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:30}
 nav a{padding:11px 0 12px;text-align:center;font-size:11px;color:var(--dim);text-decoration:none;font-weight:600}
 nav a.on{color:var(--acc)}
@@ -67,15 +71,15 @@ nav a i{display:block;font-size:17px;font-style:normal;margin-bottom:2px}
 <body>
 <div id="app"></div>
 <nav>
-<a href="#today" data-t="today"><i>◎</i>Today</a>
-<a href="#body" data-t="body"><i>◔</i>Body</a>
-<a href="#labs" data-t="labs"><i>⌁</i>Labs</a>
-<a href="#sites" data-t="sites"><i>◈</i>Sites</a>
-<a href="#more" data-t="more"><i>≡</i>More</a>
+<a href="#today"><i>◎</i>Today</a>
+<a href="#body"><i>◔</i>Body</a>
+<a href="#labs"><i>⌁</i>Labs</a>
+<a href="#sites"><i>◈</i>Sites</a>
+<a href="#more"><i>≡</i>More</a>
 </nav>
 <script>
 "use strict";
-var BUILD="v12";
+var BUILD="v13";
 var KEYS=["stack_v1","venice_stack_v1","stack_v2","venice_stack_v2"];
 var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 function findKey(){for(var i=0;i<KEYS.length;i++){try{if(localStorage.getItem(KEYS[i]))return KEYS[i]}catch(e){}}return "stack_v1"}
@@ -87,8 +91,9 @@ function addDays(s,n){var d=pd(s);d.setDate(d.getDate()+n);return iso(d)}
 function uid(){return Math.random().toString(36).slice(2,9)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function n2(x){return Math.round(x*10)/10}
+function hhmm(t){var d=new Date(t);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}
 
-function blank(){return {compounds:[],meds:[],storage:[],done:{},skips:{},oneoff:[],body:[],labs:[],sites:[],settings:{unitsPerMl:100},protocols:[]}}
+function blank(){return {compounds:[],meds:[],storage:[],done:{},skips:{},medLog:{},oneoff:[],body:[],labs:[],sites:[],settings:{unitsPerMl:100},protocols:[]}}
 function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==="object")return o}}catch(e){}return blank()}
 var S=load();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -109,26 +114,53 @@ function norm(){
     if(!Array.isArray(c.days)||!c.days.length)c.days=c.freq==="2xw"?[1,4]:[];
     if(!c.start)c.start=today();
     if(!c.route)c.route="subq";
+    if(c.time==null)c.time=c.t||"";
+    if(!c.vialMg)c.vialMg=+c.vial||+c.vialmg||+c.mgPerVial||+c.mg||0;
+    if(!c.bacMl)c.bacMl=+c.bac||+c.water||+c.bacWater||0;
+    if(c.mgPerMl==null)c.mgPerMl=+c.conc||+c.mgml||0;
+    if(c.vialMl==null)c.vialMl=+c.ml||0;
     if(!c.mode){
-      if(c.mgPerMl||c.vialMl)c.mode="liquid";
-      else if(OILRE.test(c.name))c.mode="liquid";
+      if(c.mgPerMl||OILRE.test(c.name))c.mode="liquid";
       else c.mode="powder";
     }
     if(c.mode==="liquid"){
-      if(c.vialMl==null)c.vialMl=c.bacMl||1;
-      if(c.mgPerMl==null){
+      if(!c.vialMl)c.vialMl=c.bacMl||0;
+      if(!c.mgPerMl){
         var k=(c.vialMg&&c.bacMl)?c.vialMg/c.bacMl:0;
-        if(k>=60){c.mgPerMl=Math.round(k)}
-        else {c.mgPerMl=0;c.needConc=true}
+        if(k>=60)c.mgPerMl=Math.round(k);else c.needConc=true;
       }
-      if(c.remainingMl==null)c.remainingMl=c.vialMl;
+      if(c.remainingMl==null)c.remainingMl=c.vialMl||1;
     }else{
       if(c.remainingMl==null)c.remainingMl=c.bacMl||1;
     }
   });
+  S.meds.forEach(function(m){
+    if(!m.times)m.times=[];
+    if(m.time&&m.times.indexOf(m.time)<0)m.times.push(m.time);
+  });
   if(!S.sites.length)S.sites=DEFAULT_SITES.map(function(n){return {n:n,last:null}});
   if(!S.labs.length)S.labs=LABS.map(function(n){return {n:n,v:[],unit:""}});
   S.sites=S.sites.filter(function(s,i,a){return a.findIndex(function(x){return x.n===s.n})===i});
+  healDates();
+}
+
+/* stamp entries with their true date and move any filed under the wrong key */
+function healDates(){
+  var keys=Object.keys(S.done);
+  keys.forEach(function(k){
+    var bucket=S.done[k];
+    Object.keys(bucket).forEach(function(id){
+      var e=bucket[id];
+      if(!e||typeof e!=="object"){delete bucket[id];return}
+      if(!e.d)e.d=e.t?iso(new Date(e.t)):k;
+      if(e.d!==k){
+        S.done[e.d]=S.done[e.d]||{};
+        if(!S.done[e.d][id])S.done[e.d][id]=e;
+        delete bucket[id];
+      }
+    });
+    if(!Object.keys(bucket).length&&S.done[k])delete S.done[k];
+  });
 }
 norm();
 
@@ -138,7 +170,7 @@ function mlFor(c,mg){var k=conc(c);return k>0?mg/k:0}
 function dosesLeft(c){var k=conc(c);if(!k||!c.doseMg)return null;return Math.floor((c.remainingMl||0)/mlFor(c,c.doseMg))}
 function concLabel(c){
   if(c.mode==="liquid")return c.mgPerMl?n2(c.mgPerMl)+" mg/mL":"set mg/mL";
-  var k=conc(c);return k>0?n2(k)+" mg/mL from "+n2(c.vialMg)+" mg/"+n2(c.bacMl)+" mL":"no mix";
+  var k=conc(c);return k>0?n2(k)+" mg/mL from "+n2(c.vialMg)+" mg/"+n2(c.bacMl)+" mL":"set vial and water";
 }
 
 function occurs(c,ds){
@@ -154,7 +186,7 @@ function occurs(c,ds){
   if(c.freq==="once")return diff===0;
   return false;
 }
-function isDone(ds,id){return !!(S.done[ds]&&S.done[ds][id])}
+function isDone(ds,id){var e=S.done[ds]&&S.done[ds][id];if(!e)return false;return e.d?e.d===ds:true}
 function isSkip(ds,id){return (S.skips[ds]||[]).indexOf(id)>-1}
 
 function logDose(id,ds,mg){
@@ -164,10 +196,10 @@ function logDose(id,ds,mg){
   if(isDone(ds,id)){
     var old=S.done[ds][id];
     c.remainingMl=Math.max(0,(c.remainingMl||0)+mlFor(c,old.mg||c.doseMg)-mlFor(c,dmg));
-    S.done[ds][id]={t:old.t,mg:dmg,units:n2(unitsFor(c,dmg))};
+    S.done[ds][id]={t:old.t,d:ds,mg:dmg,units:n2(unitsFor(c,dmg))};
     save();return true;
   }
-  S.done[ds][id]={t:Date.now(),units:n2(unitsFor(c,dmg)),mg:dmg};
+  S.done[ds][id]={t:Date.now(),d:ds,units:n2(unitsFor(c,dmg)),mg:dmg};
   c.remainingMl=Math.max(0,(c.remainingMl||0)-mlFor(c,dmg));
   S.skips[ds]=(S.skips[ds]||[]).filter(function(x){return x!==id});
   save();return true;
@@ -190,12 +222,20 @@ function toggleSkip(id,ds){
 var tab=(location.hash||"#today").slice(1);
 window.addEventListener("hashchange",function(){tab=(location.hash||"#today").slice(1);render()});
 
-function head(title,sub){
-  return '<header><h1>'+esc(title)+'</h1><div class="sub">'+esc(sub)+'</div></header>';
-}
+function head(title,sub){return '<header><h1>'+esc(title)+'</h1><div class="sub">'+esc(sub)+'</div></header>'}
 function doseLine(c,mg){
   var u=unitsFor(c,mg);
-  return n2(mg)+' mg · '+(u>0?n2(u)+' u':'set conc')+' · '+n2(mlFor(c,mg))+' mL';
+  if(!u)return n2(mg)+' mg · no concentration';
+  return n2(mg)+' mg · '+n2(u)+' u · '+n2(mlFor(c,mg))+' mL';
+}
+function timeChip(t,prn){
+  if(prn)return '<span class="timechip prn">PRN</span>';
+  if(!t)return '<span class="timechip any">any time</span>';
+  return '<span class="timechip">'+esc(t)+'</span>';
+}
+function doseBtn(c,ds,mg){
+  if(!conc(c))return '<button class="dose warn" data-edit="'+c.id+'">'+n2(mg)+' mg · tap to set concentration</button>';
+  return '<button class="dose" data-dose="'+c.id+'|'+ds+'">'+doseLine(c,mg)+'</button>';
 }
 
 function viewToday(){
@@ -204,28 +244,32 @@ function viewToday(){
   var done=S.compounds.filter(function(c){return isDone(d,c.id)});
   var skipped=S.compounds.filter(function(c){return isSkip(d,c.id)&&!isDone(d,c.id)});
   var total=due.length+done.length+skipped.length;
-  var off=S.compounds.filter(function(c){return !occurs(c,d)&&!c.paused&&c.freq!=="prn"&&c.freq!=="off"&&c.status!=="storage"});
+  var off=S.compounds.filter(function(c){return !occurs(c,d)&&!c.paused&&c.freq!=="prn"&&c.freq!=="off"});
+  function byTime(a,b){return (a.time||"99:99").localeCompare(b.time||"99:99")}
+  due.sort(byTime);done.sort(byTime);skipped.sort(byTime);
 
   var h=head("Today",new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"}));
   h+='<main>';
-  h+='<div class="card"><div class="row" style="border:0;padding:0"><div class="nm"><b class="mono">'+done.length+' of '+total+'</b><span>logged today</span></div><span class="pill '+(done.length===total&&total>0?"ok":"")+'">'+(total?Math.round(done.length/total*100):0)+'%</span></div></div>';
+  h+='<div class="card"><div class="row" style="border:0;padding:0"><div class="nm"><b class="mono">'+done.length+' of '+total+'</b><span>doses logged today</span></div><span class="pill '+(done.length===total&&total>0?"ok":"")+'">'+(total?Math.round(done.length/total*100):0)+'%</span></div></div>';
 
   if(!total)h+='<div class="card"><div class="dim">Nothing scheduled. Add one below or use a one-off.</div></div>';
 
   if(due.length||skipped.length||done.length){
     h+='<div class="card"><h2>Doses</h2>';
     due.forEach(function(c){
-      h+='<div class="row"><div class="chk" data-log="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b><button class="dose" data-dose="'+c.id+'|'+d+'">'+doseLine(c,c.doseMg)+'</button></div><button class="skip" data-skip="'+c.id+'">Skip</button></div>';
+      h+='<div class="row"><div class="chk" data-log="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b>'+timeChip(c.time,false)+'<br>'+doseBtn(c,d,c.doseMg)+'</div><button class="skip" data-skip="'+c.id+'">Skip</button></div>';
     });
     skipped.forEach(function(c){
-      h+='<div class="row struck"><div class="chk" data-log="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b><button class="dose" data-dose="'+c.id+'|'+d+'">skipped · '+n2(c.doseMg)+' mg</button></div><button class="skip on" data-skip="'+c.id+'">Unskip</button></div>';
+      h+='<div class="row struck"><div class="chk sk" data-log="'+c.id+'">–</div><div class="nm"><b>'+esc(c.name)+'</b>'+timeChip(c.time,false)+'<br>'+doseBtn(c,d,c.doseMg)+'</div><button class="skip on" data-skip="'+c.id+'">Unskip</button></div>';
     });
     done.forEach(function(c){
       var r=S.done[d][c.id]||{};
-      h+='<div class="row done"><div class="chk on" data-undo="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b><button class="dose" data-dose="'+c.id+'|'+d+'">'+doseLine(c,r.mg||c.doseMg)+'</button></div><button class="skip" data-skip="'+c.id+'">Skip</button></div>';
+      h+='<div class="row done"><div class="chk on" data-undo="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b>'+timeChip(c.time,false)+'<br>'+doseBtn(c,r.mg||c.doseMg,d)+'<span class="tiny"> logged '+hhmm(r.t||Date.now())+'</span></div><button class="skip" data-skip="'+c.id+'">Skip</button></div>';
     });
     h+='</div>';
   }
+
+  h+=viewMedsToday();
 
   h+='<div class="card"><h2>Backdate a dose</h2><div class="dim" style="margin-bottom:8px">For something you already took on another day.</div>';
   h+='<label>Compound</label><select id="bdSel">'+S.compounds.filter(function(c){return c.freq!=="prn"}).map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>'}).join("")+'</select>';
@@ -240,10 +284,37 @@ function viewToday(){
 
   if(off.length){
     h+='<div class="card"><h2>Not scheduled today</h2>';
-    off.forEach(function(c){h+='<div class="row"><div class="chk" data-log="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b><button class="dose" data-dose="'+c.id+'|'+d+'">'+doseLine(c,c.doseMg)+'</button></div></div>'});
+    off.forEach(function(c){
+      h+='<div class="row"><div class="chk" data-log="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b><span>'+esc(c.freq)+'</span><br>'+doseBtn(c,d,c.doseMg)+'</div></div>';
+    });
     h+='</div>';
   }
   h+='</main>';
+  return h;
+}
+
+function medSlots(){
+  var out=[];
+  S.meds.forEach(function(m,i){
+    if(!m.times||!m.times.length){out.push({i:i,m:m,t:""});return}
+    m.times.slice().sort().forEach(function(t){out.push({i:i,m:m,t:t})});
+  });
+  out.sort(function(a,b){return (a.t||"99:99").localeCompare(b.t||"99:99")});
+  return out;
+}
+function medKey(m,t){return m.n+"@"+(t||"any")}
+function isMedDone(ds,k){return !!(S.medLog[ds]&&S.medLog[ds][k])}
+function viewMedsToday(){
+  if(!S.meds.length)return "";
+  var d=today(),slots=medSlots();
+  var dn=slots.filter(function(s){return isMedDone(d,medKey(s.m,s.t))}).length;
+  var h='<div class="card"><h2>Medications</h2><div class="tiny" style="margin-bottom:6px">'+dn+' of '+slots.length+' logged</div>';
+  slots.forEach(function(s){
+    var k=medKey(s.m,s.t),done=isMedDone(d,k);
+    var prn=s.t===""&&!/^\d/.test(s.t);
+    h+='<div class="row'+(done?" done":"")+'"><div class="chk'+(done?" on":"")+'" data-med="'+esc(k)+'">✓</div><div class="nm"><b>'+esc(s.m.n)+'</b>'+timeChip(s.t,prn)+'<span>'+esc(s.m.dose||"")+'</span></div></div>';
+  });
+  h+='</div>';
   return h;
 }
 
@@ -269,7 +340,7 @@ function viewCal(){
     if(!items.length)h+='<div class="dim">Nothing scheduled.</div>';
     items.forEach(function(c){
       var dn=isDone(ds2,c.id),r=dn?(S.done[ds2][c.id]||{}):null;
-      h+='<div class="row'+(dn?" done":"")+'"><div class="chk'+(dn?" on":"")+'" data-logday="'+c.id+'|'+ds2+'">'+(dn?"✓":"")+'</div><div class="nm"><b>'+esc(c.name)+'</b><button class="dose" data-dose="'+c.id+'|'+ds2+'">'+doseLine(c,dn&&r.mg?r.mg:c.doseMg)+'</button></div></div>';
+      h+='<div class="row'+(dn?" done":"")+'"><div class="chk'+(dn?" on":"")+'" data-logday="'+c.id+'|'+ds2+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b>'+timeChip(c.time,false)+'<br>'+doseBtn(c,ds2,dn&&r.mg?r.mg:c.doseMg)+'</div></div>';
     });
     S.oneoff.filter(function(o){return o.date===ds2}).forEach(function(o){
       h+='<div class="row"><div class="nm"><b>'+esc(o.name)+'</b><span class="pill">one-off'+(o.mg?" · "+n2(o.mg)+" mg":"")+'</span></div><button class="skip" data-deloo="'+o.id+'">×</button></div>';
@@ -333,13 +404,13 @@ function viewInv(){
   h+='<main><div class="card">';
   S.compounds.forEach(function(c){
     var dl=dosesLeft(c);
-    h+='<div class="row"><div class="nm"><b>'+esc(c.name)+'</b><span>'+n2(c.doseMg)+' mg '+esc(c.freq)+(c.paused?" · paused":"")+'</span><span>'+esc(concLabel(c))+' · '+n2(c.remainingMl||0)+' mL left'+(dl!=null?" ("+dl+" doses)":"")+'</span>'+(c.needConc?' <span class="pill warn">set mg/mL</span>':'')+'</div><button class="skip" data-edit="'+c.id+'">Edit</button></div>';
+    h+='<div class="row"><div class="nm"><b>'+esc(c.name)+'</b><span>'+n2(c.doseMg)+' mg '+esc(c.freq)+(c.time?" at "+esc(c.time):"")+(c.paused?" · paused":"")+'</span><span>'+esc(concLabel(c))+' · '+n2(c.remainingMl||0)+' mL left'+(dl!=null?" ("+dl+" doses)":"")+'</span></div><button class="skip" data-edit="'+c.id+'">Edit</button></div>';
   });
   h+='</div><div class="card"><h2>Add compound</h2>';
   h+='<label>Name</label><input id="ncName"><label>Type</label><select id="ncMode"><option value="powder">powder vial (reconstitute)</option><option value="liquid">pre-mixed liquid</option></select>';
   h+='<div id="ncPow"><div class="grid2"><div><label>Vial mg</label><input id="ncMg" type="number" step="0.1"></div><div><label>BAC mL</label><input id="ncBac" type="number" step="0.1"></div></div></div>';
   h+='<div id="ncLiq" style="display:none"><div class="grid2"><div><label>mg per mL</label><input id="ncConc" type="number" step="0.1"></div><div><label>Vial mL</label><input id="ncVml" type="number" step="0.1"></div></div></div>';
-  h+='<label>Dose mg</label><input id="ncDose" type="number" step="0.01">';
+  h+='<div class="grid2"><div><label>Dose mg</label><input id="ncDose" type="number" step="0.01"></div><div><label>Time</label><input id="ncTime" type="time"></div></div>';
   h+='<label>Frequency</label><select id="ncFreq"><option value="daily">daily</option><option value="eod">every other day</option><option value="2xw">twice weekly</option><option value="weekly">weekly</option><option value="prn">PRN</option></select>';
   h+='<div style="margin-top:10px"><button class="btn" id="ncAdd">Add</button></div></div></main>';
   return h;
@@ -362,7 +433,7 @@ function viewMeds(){
   S.meds.forEach(function(m,i){
     h+='<div class="row"><div class="nm"><b>'+esc(m.n)+'</b><span>'+esc(m.dose||"")+' · '+esc((m.times||[]).join(", ")||"no time set")+'</span></div><button class="skip" data-delmed="'+i+'">×</button></div>';
   });
-  h+='</div><div class="card"><label>Name</label><input id="mdN"><label>Dose</label><input id="mdD"><label>Times (comma)</label><input id="mdT" placeholder="10:00"><div style="margin-top:10px"><button class="btn" id="mdAdd">Add</button></div></div></main>';
+  h+='</div><div class="card"><label>Name</label><input id="mdN"><label>Dose</label><input id="mdD"><label>Times (comma, blank for PRN)</label><input id="mdT" placeholder="10:00"><div style="margin-top:10px"><button class="btn" id="mdAdd">Add</button></div></div></main>';
   return h;
 }
 
@@ -397,9 +468,10 @@ function viewTools(){
   var h=head("Tools","Build "+BUILD);
   h+='<main><div class="card"><h2>Maintenance</h2>';
   h+='<button class="btn alt" id="tForce">Force refresh</button><div style="height:8px"></div>';
+  h+='<button class="btn alt" id="tClear">Clear today\'s log</button><div style="height:8px"></div>';
   h+='<button class="btn alt" id="tExport">Export JSON</button><div style="height:8px"></div>';
   h+='<button class="btn alt" id="tImport">Import JSON</button>';
-  h+='</div><div class="card"><h2>Data</h2><div class="dim">'+S.compounds.length+' compounds · '+S.storage.length+' storage · '+Object.keys(S.done).length+' logged days</div></div></main>';
+  h+='</div><div class="card"><h2>Data</h2><div class="dim">'+S.compounds.length+' compounds · '+S.meds.length+' meds · '+S.storage.length+' storage · '+Object.keys(S.done).length+' logged days</div></div></main>';
   return h;
 }
 
@@ -469,6 +541,14 @@ function bind(){
   document.querySelectorAll("[data-dose]").forEach(function(el){
     el.onclick=function(){var p=el.getAttribute("data-dose").split("|");doseModal(p[0],p[1])};
   });
+  document.querySelectorAll("[data-med]").forEach(function(el){
+    el.onclick=function(){
+      var k=el.getAttribute("data-med"),d=today();
+      S.medLog[d]=S.medLog[d]||{};
+      if(S.medLog[d][k])delete S.medLog[d][k];else S.medLog[d][k]=Date.now();
+      save();render();
+    };
+  });
   document.querySelectorAll("[data-logday]").forEach(function(el){
     el.onclick=function(){
       var p=el.getAttribute("data-logday").split("|");
@@ -516,7 +596,7 @@ function bind(){
       var c=S.compounds.find(function(x){return x.id===q("#bdSel").value});
       if(!c)return;
       q("#bdDose").value=n2(c.doseMg);
-      q("#bdOut").textContent=n2(unitsFor(c,c.doseMg))+" units · "+n2(mlFor(c,c.doseMg))+" mL";
+      q("#bdOut").textContent=conc(c)?(n2(unitsFor(c,c.doseMg))+" units · "+n2(mlFor(c,c.doseMg))+" mL"):"no concentration set";
     };
     q("#bdSel").onchange=updBd;updBd();
     q("#bdDose").oninput=function(){
@@ -568,7 +648,7 @@ function bind(){
   if(q("#ncAdd"))q("#ncAdd").onclick=function(){
     var n=q("#ncName").value.trim();if(!n)return;
     var mode=q("#ncMode").value;
-    var c={id:uid(),name:n,mode:mode,doseMg:+q("#ncDose").value||0,freq:q("#ncFreq").value,days:q("#ncFreq").value==="2xw"?[1,4]:[],start:today(),route:"subq"};
+    var c={id:uid(),name:n,mode:mode,doseMg:+q("#ncDose").value||0,time:q("#ncTime").value||"",freq:q("#ncFreq").value,days:q("#ncFreq").value==="2xw"?[1,4]:[],start:today(),route:"subq"};
     if(mode==="liquid"){c.mgPerMl=+q("#ncConc").value||0;c.vialMl=+q("#ncVml").value||1;c.remainingMl=c.vialMl;if(!c.mgPerMl)c.needConc=true}
     else{c.vialMg=+q("#ncMg").value||0;c.bacMl=+q("#ncBac").value||1;c.remainingMl=c.bacMl}
     S.compounds.push(c);save();render();
@@ -614,6 +694,15 @@ function bind(){
     var rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(function(r){return r.unregister()}));
     location.reload(true);
   };
+  if(q("#tClear"))q("#tClear").onclick=function(){
+    var d=today();
+    Object.keys(S.done[d]||{}).forEach(function(id){
+      var c=S.compounds.find(function(x){return x.id===id});
+      if(c)c.remainingMl=(c.remainingMl||0)+mlFor(c,(S.done[d][id]||{}).mg||c.doseMg);
+    });
+    delete S.done[d];delete S.skips[d];delete S.medLog[d];
+    save();render();
+  };
   if(q("#tExport"))q("#tExport").onclick=function(){
     var b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
     var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="stack-"+today()+".json";a.click();
@@ -632,7 +721,7 @@ function editCompound(id){
     '<label>Type</label><select id="eMode"><option value="powder"'+(liq?"":" selected")+'>powder vial</option><option value="liquid"'+(liq?" selected":"")+'>pre-mixed liquid</option></select>'+
     '<div id="ePow" style="display:'+(liq?"none":"block")+'"><div class="grid2"><div><label>Vial mg</label><input id="eV" type="number" step="0.1" value="'+(c.vialMg||"")+'"></div><div><label>BAC mL</label><input id="eB" type="number" step="0.1" value="'+(c.bacMl||"")+'"></div></div></div>'+
     '<div id="eLiq" style="display:'+(liq?"block":"none")+'"><div class="grid2"><div><label>mg per mL</label><input id="eC" type="number" step="0.1" value="'+(c.mgPerMl||"")+'"></div><div><label>Vial mL</label><input id="eVm" type="number" step="0.1" value="'+(c.vialMl||"")+'"></div></div></div>'+
-    '<label>Dose mg</label><input id="eD" type="number" step="0.01" value="'+c.doseMg+'">'+
+    '<div class="grid2"><div><label>Dose mg</label><input id="eD" type="number" step="0.01" value="'+c.doseMg+'"></div><div><label>Time</label><input id="eT" type="time" value="'+esc(c.time||"")+'"></div></div>'+
     '<label>Frequency</label><select id="eF">'+["daily","eod","2xw","weekly","prn","off"].map(function(f){return '<option value="'+f+'"'+(c.freq===f?" selected":"")+'>'+f+'</option>'}).join("")+'</select>'+
     '<label>Start date</label><input id="eS" type="date" value="'+esc(c.start)+'">'+
     '<label>Site</label><input id="eP" value="'+esc(c.site||"")+'">'+
@@ -645,6 +734,7 @@ function editCompound(id){
   document.getElementById("eSave").onclick=function(){
     c.mode=document.getElementById("eMode").value;
     c.doseMg=+document.getElementById("eD").value||0;
+    c.time=document.getElementById("eT").value||"";
     c.freq=document.getElementById("eF").value;c.start=document.getElementById("eS").value;c.site=document.getElementById("eP").value;
     if(c.mode==="liquid"){
       c.mgPerMl=+document.getElementById("eC").value||0;
