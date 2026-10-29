@@ -80,7 +80,7 @@ nav a i{display:block;font-size:17px;font-style:normal;margin-bottom:2px}
 </nav>
 <script>
 "use strict";
-var BUILD="v14";
+var BUILD="v15";
 var KEYS=["stack_v1","venice_stack_v1","stack_v2","venice_stack_v2"];
 var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 function findKey(){for(var i=0;i<KEYS.length;i++){try{if(localStorage.getItem(KEYS[i]))return KEYS[i]}catch(e){}}return "stack_v1"}
@@ -92,6 +92,7 @@ function addDays(s,n){var d=pd(s);d.setDate(d.getDate()+n);return iso(d)}
 function uid(){return Math.random().toString(36).slice(2,9)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function n2(x){return Math.round(x*10)/10}
+function num(x){var v=parseFloat(String(x==null?"":x).replace(/[^0-9.]/g,""));return isNaN(v)?0:v}
 function hhmm(t){var d=new Date(t);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}
 
 function blank(){return {compounds:[],meds:[],storage:[],done:{},skips:{},medLog:{},oneoff:[],body:[],labs:[],sites:[],settings:{unitsPerMl:100},protocols:[]}}
@@ -112,16 +113,17 @@ function norm(){
     if(!c.id)c.id=uid();
     if(c.freq==null)c.freq=c.freqType||"daily";
     c.freqType=c.freq;
-    if(c.doseMg==null)c.doseMg=c.dose!=null?c.dose:(c.mg!=null&&!c.vialMg?c.mg:0);
+    if(c.doseMg==null)c.doseMg=num(c.dose)||num(c.mg);
+    c.doseMg=num(c.doseMg);
     c.dose=c.doseMg;
     if(!Array.isArray(c.days)||!c.days.length)c.days=c.freq==="2xw"?[1,4]:[];
     if(!c.start)c.start=today();
     if(!c.route)c.route="subq";
     if(c.time==null)c.time=c.t||"";
-    if(!c.vialMg)c.vialMg=+c.vial||+c.vialmg||+c.mgPerVial||0;
-    if(!c.bacMl)c.bacMl=+c.bac||+c.water||+c.bacWater||0;
-    if(c.mgPerMl==null)c.mgPerMl=+c.conc||+c.mgml||0;
-    if(c.vialMl==null)c.vialMl=+c.ml||0;
+    c.vialMg=num(c.vialMg||c.vial||c.vialmg||c.mgPerVial);
+    c.bacMl=num(c.bacMl||c.bac||c.water||c.bacWater);
+    c.mgPerMl=num(c.mgPerMl||c.conc||c.mgml);
+    c.vialMl=num(c.vialMl||c.ml);
     if(!c.mode){
       if(c.mgPerMl||OILRE.test(c.name))c.mode="liquid";
       else c.mode="powder";
@@ -136,6 +138,7 @@ function norm(){
     }else{
       if(c.remainingMl==null)c.remainingMl=c.bacMl||1;
     }
+    c.remainingMl=num(c.remainingMl);
   });
   S.meds.forEach(function(m){
     if(!m.name)m.name=m.n||m.med||m.medication||m.label||"Medication";
@@ -149,7 +152,7 @@ function norm(){
   });
   S.storage.forEach(function(s){
     if(!s.n)s.n=s.name||s.item||"Item";
-    if(s.qty==null)s.qty=s.q||null;
+    if(s.qty!=null)s.qty=num(s.qty);
   });
   if(!S.sites.length)S.sites=DEFAULT_SITES.map(function(n){return {n:n,last:null}});
   if(!S.labs.length)S.labs=LABS.map(function(n){return {n:n,v:[],unit:""}});
@@ -175,7 +178,7 @@ function healDates(){
 }
 norm();
 
-function conc(c){return c.mode==="liquid"?(+c.mgPerMl||0):(c.vialMg&&c.bacMl?c.vialMg/c.bacMl:0)}
+function conc(c){return c.mode==="liquid"?num(c.mgPerMl):(c.vialMg&&c.bacMl?c.vialMg/c.bacMl:0)}
 function unitsFor(c,mg){var k=conc(c);return k>0?mg/k*100:0}
 function mlFor(c,mg){var k=conc(c);return k>0?mg/k:0}
 function dosesLeft(c){var k=conc(c);if(!k||!c.doseMg)return null;return Math.floor((c.remainingMl||0)/mlFor(c,c.doseMg))}
@@ -202,7 +205,7 @@ function isSkip(ds,id){return (S.skips[ds]||[]).indexOf(id)>-1}
 
 function logDose(id,ds,mg){
   var c=S.compounds.find(function(x){return x.id===id});if(!c)return false;
-  var dmg=(mg!=null&&+mg>0)?+mg:c.doseMg;
+  var dmg=(mg!=null&&num(mg)>0)?num(mg):c.doseMg;
   if(!dmg||dmg<=0)return false;
   if(isDone(ds,id)){
     var old=S.done[ds][id];
@@ -261,10 +264,10 @@ function doseBtn(c,ds,mg){
 function viewToday(){
   var d=today();
   var due=S.compounds.filter(function(c){return occurs(c,d)&&!isDone(d,c.id)&&!isSkip(d,c.id)});
-  var done=S.compounds.filter(function(c){return isDone(d,c.id)});
+  var done=S.compounds.filter(function(c){return isDone(d,c.id)&&c.freq!=="prn"});
   var skipped=S.compounds.filter(function(c){return isSkip(d,c.id)&&!isDone(d,c.id)});
   var total=due.length+done.length+skipped.length;
-  var off=S.compounds.filter(function(c){return !occurs(c,d)&&!c.paused&&c.freq!=="prn"&&c.freq!=="off"});
+  var off=S.compounds.filter(function(c){return !occurs(c,d)&&!isDone(d,c.id)&&!c.paused&&c.freq!=="prn"&&c.freq!=="off"});
   function byTime(a,b){return (a.time||"99:99").localeCompare(b.time||"99:99")}
   due.sort(byTime);done.sort(byTime);skipped.sort(byTime);
 
@@ -309,7 +312,27 @@ function viewToday(){
     });
     h+='</div>';
   }
+
+  h+=viewAsNeeded();
   h+='</main>';
+  return h;
+}
+
+function viewAsNeeded(){
+  var d=today();
+  var prnC=S.compounds.filter(function(c){return c.freq==="prn"&&!c.paused});
+  var prnM=medSlots().filter(function(s){return !s.t});
+  if(!prnC.length&&!prnM.length)return "";
+  var h='<div class="card"><h2>As needed</h2><div class="tiny" style="margin-bottom:6px">Not counted in the daily total</div>';
+  prnC.forEach(function(c){
+    var dn=isDone(d,c.id),r=dn?S.done[d][c.id]:null;
+    h+='<div class="row'+(dn?" done":"")+'"><div class="chk'+(dn?" on":"")+'" data-log="'+c.id+'">✓</div><div class="nm"><div class="l1"><b>'+esc(c.name)+'</b><span class="timechip prn">PRN</span></div><div class="l2">'+doseBtn(c,d,dn&&r.mg?r.mg:c.doseMg)+(dn?' · logged '+hhmm(r.t||Date.now()):'')+'</div></div></div>';
+  });
+  prnM.forEach(function(s){
+    var k=medKey(s.m,s.t),dn=isMedDone(d,k);
+    h+='<div class="row'+(dn?" done":"")+'"><div class="chk'+(dn?" on":"")+'" data-med="'+esc(k)+'">✓</div><div class="nm"><div class="l1"><b>'+esc(s.m.n)+'</b><span class="timechip prn">PRN</span></div><div class="l2">'+esc(s.m.dose||"")+'</div></div></div>';
+  });
+  h+='</div>';
   return h;
 }
 
@@ -325,14 +348,14 @@ function medSlots(){
 function medKey(m,t){return m.n+"@"+(t||"any")}
 function isMedDone(ds,k){return !!(S.medLog[ds]&&S.medLog[ds][k])}
 function viewMedsToday(){
-  if(!S.meds.length)return "";
-  var d=today(),slots=medSlots();
+  var slots=medSlots().filter(function(s){return !!s.t});
+  if(!slots.length)return "";
+  var d=today();
   var dn=slots.filter(function(s){return isMedDone(d,medKey(s.m,s.t))}).length;
   var h='<div class="card"><h2>Medications</h2><div class="tiny" style="margin-bottom:6px">'+dn+' of '+slots.length+' logged</div>';
   slots.forEach(function(s){
     var k=medKey(s.m,s.t),done=isMedDone(d,k);
-    var prn=!s.t;
-    h+='<div class="row'+(done?" done":"")+'"><div class="chk'+(done?" on":"")+'" data-med="'+esc(k)+'">✓</div><div class="nm"><div class="l1"><b>'+esc(s.m.n)+'</b>'+timeChip(s.t,prn)+'</div><div class="l2">'+esc(s.m.dose||"")+'</div></div></div>';
+    h+='<div class="row'+(done?" done":"")+'"><div class="chk'+(done?" on":"")+'" data-med="'+esc(k)+'">✓</div><div class="nm"><div class="l1"><b>'+esc(s.m.n)+'</b>'+timeChip(s.t,false)+'</div><div class="l2">'+esc(s.m.dose||"")+'</div></div></div>';
   });
   h+='</div>';
   return h;
@@ -451,7 +474,7 @@ function viewMeds(){
   var h=head("Medications","Prescriptions and PRN");
   h+='<main><div class="card">';
   S.meds.forEach(function(m,i){
-    h+='<div class="row"><div class="nm"><div class="l1"><b>'+esc(m.n)+'</b></div><div class="l2">'+esc(m.dose||"")+' · '+esc((m.times||[]).join(", ")||"no time set (PRN)")+'</div></div><button class="skip" data-delmed="'+i+'">×</button></div>';
+    h+='<div class="row"><div class="nm"><div class="l1"><b>'+esc(m.n)+'</b></div><div class="l2">'+esc(m.dose||"")+' · '+esc((m.times||[]).join(", ")||"PRN")+'</div></div><button class="skip" data-delmed="'+i+'">×</button></div>';
   });
   h+='</div><div class="card"><label>Name</label><input id="mdN"><label>Dose</label><input id="mdD"><label>Times (comma, blank for PRN)</label><input id="mdT" placeholder="10:00"><div style="margin-top:10px"><button class="btn" id="mdAdd">Add</button></div></div></main>';
   return h;
@@ -461,327 +484,4 @@ function viewConf(){
   var R=[];
   function has(n){return S.compounds.some(function(c){return c.name.toLowerCase().indexOf(n)>-1&&!c.paused})}
   if(has("tirz")&&has("reta"))R.push(["bad","Tirzepatide and retatrutide both active","Pick one. Two GLP-1s stack nausea."]);
-  if(S.meds.some(function(m){return /propranolol/i.test(m.n)}))R.push(["warn","Propranolol with PDE5 inhibitors","Blunts the tadalafil/sildenafil response and can drop BP. Dose it early, not right before."]);
-  if(S.meds.some(function(m){return /doxy/i.test(m.n)}))R.push(["warn","Doxycycline chelates minerals","Keep calcium, magnesium, iron and dairy 2 h away. 10:00 isolated window."]);
-  if(has("ghk")&&has("bpc"))R.push(["ok","GHK-Cu and BPC-157 in one barrel","Compatible. 25 mg GHK in 6 mL, draw 3 mL into the BPC 10 mg vial, dial 12 units."]);
-  if(has("tirz")||has("reta"))R.push(["info","Incretin + orals","Orals hit faster on an empty stomach; GLP-1 slows gastric emptying. Expect variable onset."]);
-  if(!R.length)R.push(["ok","No flags","Nothing in the active stack conflicts."]);
-  var h=head("Interactions","Live rules on the active stack");
-  h+='<main>'+R.map(function(r){return '<div class="card"><div class="row" style="border:0;padding:0"><div class="nm"><div class="l1"><b>'+esc(r[1])+'</b></div><div class="l2">'+esc(r[2])+'</div></div><span class="pill '+r[0]+'">'+r[0]+'</span></div></div>'}).join("");
-  h+='</main>';
-  return h;
-}
-
-function syncCfg(){try{return JSON.parse(localStorage.getItem(SKEY))||{}}catch(e){return {}}}
-function viewSync(){
-  var c=syncCfg();
-  var h=head("Sync","Phone pushes, laptop pulls");
-  h+='<main><div class="card"><h2>Gist</h2><div class="dim" style="margin-bottom:8px">Gist ID: '+esc(c.gistId||"not set")+'</div>';
-  h+='<label>Token</label><input id="syT" value="'+esc(c.token||"")+'"><label>Gist ID</label><input id="syG" value="'+esc(c.gistId||"")+'">';
-  h+='<div class="grid2" style="margin-top:10px"><button class="btn" id="syPush">Push</button><button class="btn alt" id="syPull">Pull</button></div>';
-  h+='<div style="margin-top:8px"><button class="btn alt sm" id="syNew">Create new gist</button> <button class="btn alt sm" id="syForget">Forget token</button></div>';
-  h+='<div class="tiny" style="margin-top:8px">Last: '+esc(c.last||"never")+'</div></div></main>';
-  return h;
-}
-
-function viewTools(){
-  var h=head("Tools","Build "+BUILD);
-  h+='<main><div class="card"><h2>Maintenance</h2>';
-  h+='<button class="btn alt" id="tForce">Force refresh</button><div style="height:8px"></div>';
-  h+='<button class="btn alt" id="tClear">Clear today\'s log</button><div style="height:8px"></div>';
-  h+='<button class="btn alt" id="tExport">Export JSON</button><div style="height:8px"></div>';
-  h+='<button class="btn alt" id="tImport">Import JSON</button>';
-  h+='</div><div class="card"><h2>Data</h2><div class="dim">'+S.compounds.length+' compounds · '+S.meds.length+' meds · '+S.storage.length+' storage · '+Object.keys(S.done).length+' logged days</div></div></main>';
-  return h;
-}
-
-function render(){
-  var v;
-  if(tab==="today")v=viewToday();
-  else if(tab==="body")v=viewBody();
-  else if(tab==="labs")v=viewLabs();
-  else if(tab==="sites")v=viewSites();
-  else if(tab==="inv")v=viewInv();
-  else if(tab==="storage")v=viewStorage();
-  else if(tab==="meds")v=viewMeds();
-  else if(tab==="conf")v=viewConf();
-  else if(tab==="sync")v=viewSync();
-  else if(tab==="tools")v=viewTools();
-  else v=viewMore();
-  document.getElementById("app").innerHTML=v;
-  Array.prototype.forEach.call(document.querySelectorAll("nav a"),function(a){
-    a.className=(a.getAttribute("href")==="#"+tab)?"on":"";
-  });
-  bind();
-}
-
-function modal(html){
-  closeModal();
-  var w=document.createElement("div");
-  w.className="modal";w.id="mdl";
-  w.innerHTML='<div class="sheet">'+html+'</div>';
-  document.body.appendChild(w);
-}
-function closeModal(){var m=document.getElementById("mdl");if(m)m.remove()}
-
-function doseModal(id,ds){
-  var c=S.compounds.find(function(x){return x.id===id});if(!c)return;
-  var logged=isDone(ds,id);
-  var cur=logged?(S.done[ds][id].mg||c.doseMg):c.doseMg;
-  var html='<h3>'+esc(c.name)+'</h3><div class="dim">'+(ds===today()?"Today":esc(ds))+' · default '+n2(c.doseMg)+' mg · '+esc(concLabel(c))+'</div><label>Dose (mg)</label><input id="dm" type="number" step="0.01" inputmode="decimal" value="'+n2(cur)+'"><div class="tiny" id="dout" style="margin-top:6px"></div><div style="height:12px"></div><button class="btn" id="dgo">'+(logged?"Update logged dose":"Log it")+'</button><div style="height:8px"></div><button class="btn alt" id="ddef">Reset to '+n2(c.doseMg)+' mg</button>';
-  if(logged){
-    html+='<div style="height:12px"></div><label>Move to a different date</label><div class="grid2"><input id="dmv" type="date" value="'+ds+'"><button class="btn alt" id="dmvgo">Move</button></div>';
-  }
-  html+='<div style="height:8px"></div><button class="btn alt" id="dcancel">Cancel</button>';
-  modal(html);
-  function upd(){
-    var v=+document.getElementById("dm").value||0;
-    document.getElementById("dout").textContent=v>0?(n2(unitsFor(c,v))+" units · "+n2(mlFor(c,v))+" mL"):"enter a dose";
-  }
-  document.getElementById("dm").oninput=upd;upd();
-  document.getElementById("dgo").onclick=function(){
-    var v=+document.getElementById("dm").value;
-    if(!v||v<=0)return;
-    logDose(id,ds,v);closeModal();render();
-  };
-  document.getElementById("ddef").onclick=function(){document.getElementById("dm").value=n2(c.doseMg);upd()};
-  document.getElementById("dcancel").onclick=closeModal;
-  if(logged)document.getElementById("dmvgo").onclick=function(){
-    var to=document.getElementById("dmv").value;
-    if(!to)return;
-    moveDose(id,ds,to);closeModal();render();
-  };
-}
-
-function bind(){
-  function q(s){return document.querySelector(s)}
-  document.querySelectorAll("[data-log]").forEach(function(el){
-    el.onclick=function(){
-      var id=el.getAttribute("data-log");
-      if(isDone(today(),id)){undoDose(id,today())}else{logDose(id,today())}
-      render();
-    };
-  });
-  document.querySelectorAll("[data-undo]").forEach(function(el){
-    el.onclick=function(){undoDose(el.getAttribute("data-undo"),today());render()};
-  });
-  document.querySelectorAll("[data-skip]").forEach(function(el){
-    el.onclick=function(){toggleSkip(el.getAttribute("data-skip"),today());render()};
-  });
-  document.querySelectorAll("[data-dose]").forEach(function(el){
-    el.onclick=function(){var p=el.getAttribute("data-dose").split("|");doseModal(p[0],p[1])};
-  });
-  document.querySelectorAll("[data-med]").forEach(function(el){
-    el.onclick=function(){
-      var k=el.getAttribute("data-med"),d=today();
-      S.medLog[d]=S.medLog[d]||{};
-      if(S.medLog[d][k])delete S.medLog[d][k];else S.medLog[d][k]=Date.now();
-      save();render();
-    };
-  });
-  document.querySelectorAll("[data-logday]").forEach(function(el){
-    el.onclick=function(){
-      var p=el.getAttribute("data-logday").split("|");
-      if(isDone(p[1],p[0]))undoDose(p[0],p[1]);else logDose(p[0],p[1]);
-      render();
-    };
-  });
-  document.querySelectorAll("[data-day]").forEach(function(el){
-    el.onclick=function(){S.calDay=el.getAttribute("data-day");save();render()};
-  });
-  document.querySelectorAll("[data-deloo]").forEach(function(el){
-    el.onclick=function(){S.oneoff=S.oneoff.filter(function(o){return o.id!==el.getAttribute("data-deloo")});save();render()};
-  });
-  document.querySelectorAll("[data-delst]").forEach(function(el){
-    el.onclick=function(){S.storage.splice(+el.getAttribute("data-delst"),1);save();render()};
-  });
-  document.querySelectorAll("[data-delmed]").forEach(function(el){
-    el.onclick=function(){S.meds.splice(+el.getAttribute("data-delmed"),1);save();render()};
-  });
-  document.querySelectorAll("[data-site]").forEach(function(el){
-    el.onclick=function(){
-      var n=el.getAttribute("data-site");
-      S.sites.forEach(function(s){if(s.n===n)s.last=today()});
-      save();render();
-    };
-  });
-  document.querySelectorAll("[data-lab]").forEach(function(el){
-    el.onclick=function(){
-      var n=el.getAttribute("data-lab");
-      modal('<h3>'+esc(n)+'</h3><label>Value</label><input id="lv"><label>Date</label><input id="ld" type="date" value="'+today()+'"><div style="height:10px"></div><button class="btn" id="lgo">Save</button> <button class="btn alt" id="lcancel">Cancel</button>');
-      document.getElementById("lgo").onclick=function(){
-        var l=S.labs.find(function(x){return x.n===n});
-        if(l){l.v.push({val:document.getElementById("lv").value,date:document.getElementById("ld").value});save()}
-        closeModal();render();
-      };
-      document.getElementById("lcancel").onclick=closeModal;
-    };
-  });
-  document.querySelectorAll("[data-edit]").forEach(function(el){
-    el.onclick=function(){editCompound(el.getAttribute("data-edit"))};
-  });
-
-  if(q("#bdSel")){
-    var updBd=function(){
-      var c=S.compounds.find(function(x){return x.id===q("#bdSel").value});
-      if(!c)return;
-      q("#bdDose").value=n2(c.doseMg);
-      q("#bdOut").textContent=conc(c)?(n2(unitsFor(c,c.doseMg))+" units · "+n2(mlFor(c,c.doseMg))+" mL"):"no concentration set";
-    };
-    q("#bdSel").onchange=updBd;updBd();
-    q("#bdDose").oninput=function(){
-      var c=S.compounds.find(function(x){return x.id===q("#bdSel").value});
-      if(!c)return;
-      var v=+q("#bdDose").value||0;
-      q("#bdOut").textContent=v>0?(n2(unitsFor(c,v))+" units · "+n2(mlFor(c,v))+" mL"):"enter a dose";
-    };
-    q("#bdGo").onclick=function(){
-      var id=q("#bdSel").value,ds=q("#bdDate").value,mg=+q("#bdDose").value;
-      if(!id||!ds)return;
-      if(!logDose(id,ds,mg)){render();return}
-      var c=S.compounds.find(function(x){return x.id===id});
-      render();
-      if(ds!==today()&&c&&occurs(c,today())&&!isDone(today(),id)&&!isSkip(today(),id)){
-        modal('<h3>'+esc(c.name)+'</h3><div class="dim">Logged on '+esc(ds)+'. It is also scheduled today. Skip today\'s or keep both?</div><div style="height:12px"></div><button class="btn" id="mSkip">Skip today\'s</button><div style="height:8px"></div><button class="btn alt" id="mKeep">Keep both</button>');
-        document.getElementById("mSkip").onclick=function(){toggleSkip(id,today());closeModal();render()};
-        document.getElementById("mKeep").onclick=closeModal;
-      }
-    };
-  }
-
-  if(q("#ooGo"))q("#ooGo").onclick=function(){
-    var n=q("#ooName").value.trim();if(!n)return;
-    S.oneoff.push({id:uid(),name:n,date:q("#ooDate").value||today(),mg:+q("#ooMg").value||null});
-    save();render();
-  };
-  if(q("#bSave"))q("#bSave").onclick=function(){
-    var w=parseFloat(q("#bW").value),wa=parseFloat(q("#bWaist").value);
-    if(!w&&!wa)return;
-    var d=today(),ex=S.body.find(function(b){return b.date===d});
-    if(ex){if(w)ex.w=w;if(wa)ex.waist=wa}
-    else S.body.push({date:d,w:w||null,waist:wa||null});
-    save();render();
-  };
-  if(q("#calPrev"))q("#calPrev").onclick=function(){
-    var b=pd((S.calMonth||today().slice(0,7))+"-01");b.setMonth(b.getMonth()-1);
-    S.calMonth=iso(b).slice(0,7);save();render();
-  };
-  if(q("#calNext"))q("#calNext").onclick=function(){
-    var b=pd((S.calMonth||today().slice(0,7))+"-01");b.setMonth(b.getMonth()+1);
-    S.calMonth=iso(b).slice(0,7);save();render();
-  };
-  if(q("#ncMode"))q("#ncMode").onchange=function(){
-    var liq=q("#ncMode").value==="liquid";
-    q("#ncPow").style.display=liq?"none":"block";
-    q("#ncLiq").style.display=liq?"block":"none";
-  };
-  if(q("#ncAdd"))q("#ncAdd").onclick=function(){
-    var n=q("#ncName").value.trim();if(!n)return;
-    var mode=q("#ncMode").value;
-    var c={id:uid(),name:n,n:n,mode:mode,doseMg:+q("#ncDose").value||0,time:q("#ncTime").value||"",freq:q("#ncFreq").value,days:q("#ncFreq").value==="2xw"?[1,4]:[],start:today(),route:"subq"};
-    if(mode==="liquid"){c.mgPerMl=+q("#ncConc").value||0;c.vialMl=+q("#ncVml").value||1;c.remainingMl=c.vialMl;if(!c.mgPerMl)c.needConc=true}
-    else{c.vialMg=+q("#ncMg").value||0;c.bacMl=+q("#ncBac").value||1;c.remainingMl=c.bacMl}
-    S.compounds.push(c);save();render();
-  };
-  if(q("#stAdd"))q("#stAdd").onclick=function(){
-    var n=q("#stN").value.trim();if(!n)return;
-    S.storage.push({n:n,qty:+q("#stQ").value||null,unit:q("#stU").value||""});
-    save();render();
-  };
-  if(q("#mdAdd"))q("#mdAdd").onclick=function(){
-    var n=q("#mdN").value.trim();if(!n)return;
-    S.meds.push({n:n,name:n,dose:q("#mdD").value,times:q("#mdT").value.split(",").map(function(x){return x.trim()}).filter(Boolean)});
-    save();render();
-  };
-  if(q("#syPush"))q("#syPush").onclick=async function(){
-    var t=q("#syT").value.trim(),g=q("#syG").value.trim();
-    localStorage.setItem(SKEY,JSON.stringify({token:t,gistId:g,last:new Date().toLocaleString()}));
-    if(!t||!g)return alert("Token and gist ID required");
-    var r=await fetch("https://api.github.com/gists/"+g,{method:"PATCH",headers:{Authorization:"Bearer "+t,"Content-Type":"application/json"},body:JSON.stringify({files:{"stack.json":{content:JSON.stringify(S)}}})});
-    alert(r.ok?"Pushed.":"Push failed: "+r.status);render();
-  };
-  if(q("#syPull"))q("#syPull").onclick=async function(){
-    var t=q("#syT").value.trim(),g=q("#syG").value.trim();
-    localStorage.setItem(SKEY,JSON.stringify({token:t,gistId:g,last:new Date().toLocaleString()}));
-    if(!t||!g)return alert("Token and gist ID required");
-    var r=await fetch("https://api.github.com/gists/"+g,{headers:{Authorization:"Bearer "+t}});
-    if(!r.ok)return alert("Pull failed: "+r.status);
-    var j=await r.json(),f=j.files["stack.json"];
-    if(!f)return alert("No stack.json in gist");
-    S=JSON.parse(f.content);norm();save();alert("Pulled.");render();
-  };
-  if(q("#syNew"))q("#syNew").onclick=async function(){
-    var t=q("#syT").value.trim();if(!t)return alert("Token required");
-    var r=await fetch("https://api.github.com/gists",{method:"POST",headers:{Authorization:"Bearer "+t,"Content-Type":"application/json"},body:JSON.stringify({description:"Stack backup",public:false,files:{"stack.json":{content:JSON.stringify(S)}}})});
-    if(!r.ok)return alert("Failed: "+r.status);
-    var j=await r.json();
-    localStorage.setItem(SKEY,JSON.stringify({token:t,gistId:j.id,last:new Date().toLocaleString()}));
-    alert("Gist created.");render();
-  };
-  if(q("#syForget"))q("#syForget").onclick=function(){localStorage.removeItem(SKEY);render()};
-  if(q("#tForce"))q("#tForce").onclick=async function(){
-    if("caches" in window){var ks=await caches.keys();await Promise.all(ks.map(function(k){return caches.delete(k)}))}
-    var rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(function(r){return r.unregister()}));
-    location.reload(true);
-  };
-  if(q("#tClear"))q("#tClear").onclick=function(){
-    var d=today();
-    Object.keys(S.done[d]||{}).forEach(function(id){
-      var c=S.compounds.find(function(x){return x.id===id});
-      if(c)c.remainingMl=(c.remainingMl||0)+mlFor(c,(S.done[d][id]||{}).mg||c.doseMg);
-    });
-    delete S.done[d];delete S.skips[d];delete S.medLog[d];
-    save();render();
-  };
-  if(q("#tExport"))q("#tExport").onclick=function(){
-    var b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
-    var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="stack-"+today()+".json";a.click();
-  };
-  if(q("#tImport"))q("#tImport").onclick=function(){
-    var i=document.createElement("input");i.type="file";i.accept=".json";
-    i.onchange=function(){var f=i.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{S=JSON.parse(r.result);norm();save();render()}catch(e){alert("Bad file")}};r.readAsText(f)};
-    i.click();
-  };
-}
-
-function editCompound(id){
-  var c=S.compounds.find(function(x){return x.id===id});if(!c)return;
-  var liq=c.mode==="liquid";
-  modal('<h3>'+esc(c.name)+'</h3>'+
-    '<label>Type</label><select id="eMode"><option value="powder"'+(liq?"":" selected")+'>powder vial</option><option value="liquid"'+(liq?" selected":"")+'>pre-mixed liquid</option></select>'+
-    '<div id="ePow" style="display:'+(liq?"none":"block")+'"><div class="grid2"><div><label>Vial mg</label><input id="eV" type="number" step="0.1" value="'+(c.vialMg||"")+'"></div><div><label>BAC mL</label><input id="eB" type="number" step="0.1" value="'+(c.bacMl||"")+'"></div></div></div>'+
-    '<div id="eLiq" style="display:'+(liq?"block":"none")+'"><div class="grid2"><div><label>mg per mL</label><input id="eC" type="number" step="0.1" value="'+(c.mgPerMl||"")+'"></div><div><label>Vial mL</label><input id="eVm" type="number" step="0.1" value="'+(c.vialMl||"")+'"></div></div></div>'+
-    '<div class="grid2"><div><label>Dose mg</label><input id="eD" type="number" step="0.01" value="'+c.doseMg+'"></div><div><label>Time</label><input id="eT" type="time" value="'+esc(c.time||"")+'"></div></div>'+
-    '<label>Frequency</label><select id="eF">'+["daily","eod","2xw","weekly","prn","off"].map(function(f){return '<option value="'+f+'"'+(c.freq===f?" selected":"")+'>'+f+'</option>'}).join("")+'</select>'+
-    '<label>Start date</label><input id="eS" type="date" value="'+esc(c.start)+'">'+
-    '<label>Site</label><input id="eP" value="'+esc(c.site||"")+'">'+
-    '<div style="height:12px"></div><button class="btn" id="eSave">Save</button><div style="height:8px"></div><button class="btn alt" id="ePause">'+(c.paused?"Resume":"Pause")+'</button><div style="height:8px"></div><button class="btn bad" id="eDel">Delete</button>');
-  document.getElementById("eMode").onchange=function(){
-    var l=this.value==="liquid";
-    document.getElementById("ePow").style.display=l?"none":"block";
-    document.getElementById("eLiq").style.display=l?"block":"none";
-  };
-  document.getElementById("eSave").onclick=function(){
-    c.mode=document.getElementById("eMode").value;
-    c.doseMg=+document.getElementById("eD").value||0;
-    c.time=document.getElementById("eT").value||"";
-    c.freq=document.getElementById("eF").value;c.start=document.getElementById("eS").value;c.site=document.getElementById("eP").value;
-    if(c.mode==="liquid"){
-      c.mgPerMl=+document.getElementById("eC").value||0;
-      var vm=+document.getElementById("eVm").value||0;
-      if(vm&&vm!==c.vialMl){c.vialMl=vm;c.remainingMl=vm}
-      if(!c.vialMl)c.vialMl=1;
-      if(c.mgPerMl)c.needConc=false;
-    }else{
-      c.vialMg=+document.getElementById("eV").value||0;c.bacMl=+document.getElementById("eB").value||1;
-    }
-    save();closeModal();render();
-  };
-  document.getElementById("ePause").onclick=function(){c.paused=!c.paused;save();closeModal();render()};
-  document.getElementById("eDel").onclick=function(){S.compounds=S.compounds.filter(function(x){return x.id!==id});save();closeModal();render()};
-}
-
-render();
-</script>
-</body>
-</html>
+  if(S.meds.some(function
