@@ -99,6 +99,7 @@ td{padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}tr:last-
 </div>
 <div class="nav" id="nav"></div>
 <script>
+const BUILD='v8';
 const KEY='stack_v1';
 const SYK='stack_sync';
 const CLS=[['glp1','GLP-1'],['amylin','Amylin'],['aas','Oil'],['oral','Oral AAS'],['hcg','hCG'],['ghs','GH secretagogue'],['nad','NAD+'],['heal','Healing peptide'],['skin','Skin peptide'],['mito','Metabolic'],['stim','Stimulant'],['ssri','SSRI'],['abx','Antibiotic'],['bp','BP med'],['pde5','PDE5'],['supp','Supplement'],['rx','Other Rx']];
@@ -413,7 +414,8 @@ function vMore(){return `<div class="card"><h3>Everything else</h3><div class="m
 <button data-tab="cal">Calendar</button><button data-tab="stack">Stack</button>
 <button data-tab="supps">Supps</button><button data-tab="inv">Inventory</button>
 <button data-tab="flags">Flags</button><button data-tab="tools">Tools</button>
-<button data-tab="plan">Plan</button><button data-tab="proto">Protocols</button></div></div>`;}
+<button data-tab="plan">Plan</button><button data-tab="proto">Protocols</button></div>
+<div class="note">Build ${BUILD}</div></div>`;}
 function vCal(){
 const base=new Date();base.setDate(1);base.setMonth(base.getMonth()+S.calMonth);
 const y=base.getFullYear(),m=base.getMonth();
@@ -515,17 +517,26 @@ const c=j.files['stack.json'].content;
 S=JSON.parse(c);save();render();alert('Pulled.');
 }catch(e){alert('Pull failed: '+e.message);}
 }
+async function forceUpdate(){
+if(!confirm('Clear the cache and reload?'))return;
+try{if('serviceWorker' in navigator){const rs=await navigator.serviceWorker.getRegistrations();
+for(const r of rs)await r.unregister();}
+if(window.caches){const ks=await caches.keys();for(const k of ks)await caches.delete(k);}}catch(e){}
+location.reload();
+}
 function vTools(){
 const mask=SY.token?SY.token.slice(0,7)+'…'+SY.token.slice(-4):'';
-return `<div class="card"><h3>Sync</h3>
-<div class="meta">Secret gist as the store. Changes push from this device and pull to the others.</div>
-<div class="row"><div><label>Token ${mask?'· saved '+mask:''}</label><input id="syT" type="password" placeholder="github_pat_..." value="${esc(SY.token)}"></div></div>
+return `<div class="card"><h3>Build</h3><div class="meta">Build <b>${BUILD}</b> · if this is lower than what you deployed, you are on a cached copy.</div>
+<div class="fl"><button class="btn sec sm" id="fu">Force refresh</button></div></div>
+<div class="card"><h3>Sync</h3>
+<div class="meta">Secret gist as the store. Push from this device, pull on the others.</div>
+<div class="row"><div><label>Token ${mask?'· saved '+mask:''}</label><input id="syT" type="password" placeholder="ghp_..." value="${esc(SY.token)}"></div></div>
 <div class="row"><div><label>Gist ID</label><input id="syG" placeholder="blank = create a new one on first push" value="${esc(SY.gist)}"></div></div>
-<div class="row g2"><div><label>Auto-push after changes</label><select id="syA"><option value="0" ${SY.auto?'':'selected'}>Off</option><option value="1" ${SY.auto?'selected':''}>On</option></select></div><div><label>Last push</label><input value="${SY.last?new Date(SY.last).toLocaleString():'never'}" readonly></div></div>
-<div class="fl"><button class="btn sm" id="sySave">Save settings</button><button class="btn sec sm" id="syPush">Push</button><button class="btn sec sm" id="syPull">Pull</button><button class="btn sec sm" id="syForget">Forget token</button></div>
-<div class="note">Fine-grained PAT with Gists read and write only. Stored per device under its own key, so it never lands in an exported JSON. Last write wins - pull before pushing from a different device.</div></div>
+<div class="row g2"><div><label>Auto-push</label><select id="syA"><option value="0" ${SY.auto?'':'selected'}>Off</option><option value="1" ${SY.auto?'selected':''}>On</option></select></div><div><label>Last push</label><input value="${SY.last?new Date(SY.last).toLocaleString():'never'}" readonly></div></div>
+<div class="fl"><button class="btn sm" id="sySave">Save</button><button class="btn sec sm" id="syPush">Push</button><button class="btn sec sm" id="syPull">Pull</button><button class="btn sec sm" id="syForget">Forget</button></div>
+<div class="note">Last write wins. Pull before pushing from another device.</div></div>
 <div class="card"><h3>Calculator</h3><div class="row g3"><div><label>Vial</label><input id="cM" type="number" value="1200"></div><div><label>BAC mL</label><input id="cB" type="number" value="12" step="0.1"></div><div><label>Dose</label><input id="cD" type="number" value="25" step="0.01"></div></div><button class="btn" id="cGo">Calculate</button><div id="cO"></div></div>
-<div class="card"><h3>Calendar export</h3><div class="fl"><button class="btn sm" id="ics">Export .ics</button></div><div class="note">Paused items skipped.</div></div>
+<div class="card"><h3>Calendar export</h3><div class="fl"><button class="btn sm" id="ics">Export .ics</button></div></div>
 <div class="card"><h3>Pen fill sheet</h3><table><tr><th>Pen</th><th>Recon</th><th>Dial</th><th>Lasts</th></tr>
 <tr><td><b>1 — BPC+GHK</b></td><td>BPC 10mg + GHK 25mg in 3mL</td><td><b>12u</b> 2x/day</td><td>~11d</td></tr>
 <tr><td><b>2 — Tesa</b></td><td>10mg + 2mL = 5mg/mL</td><td><b>20u</b> nightly</td><td>~9d</td></tr>
@@ -533,6 +544,7 @@ return `<div class="card"><h3>Sync</h3>
 <div class="card"><h3>Backup</h3><div class="fl"><button class="btn sec sm" id="exp">Export JSON</button><label class="btn sec sm" style="margin:0">Restore<input type="file" id="imp" accept=".json" style="display:none"></label></div></div>`;
 }
 document.addEventListener('click',e=>{
+if(e.target.id==='fu'){forceUpdate();return;}
 if(e.target.id==='sySave'){SY.token=document.getElementById('syT').value.trim();SY.gist=document.getElementById('syG').value.trim();SY.auto=document.getElementById('syA').value==='1';saveSY();render();return;}
 if(e.target.id==='syPush'){SY.token=document.getElementById('syT').value.trim();SY.gist=document.getElementById('syG').value.trim();SY.auto=document.getElementById('syA').value==='1';saveSY();pushGist();return;}
 if(e.target.id==='syPull'){SY.token=document.getElementById('syT').value.trim();SY.gist=document.getElementById('syG').value.trim();saveSY();pullGist();return;}
