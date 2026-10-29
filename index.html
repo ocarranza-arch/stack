@@ -3,619 +3,664 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Stack</title>
 <link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Stack">
 <style>
-:root{--bg:#0b0b0c;--card:#151517;--bd:#26262a;--fg:#e8e8ea;--mut:#8a8a92;--acc:#4c8dff;--warn:#ff5c5c;--ok:#35c46a;--oil:#f5a524;--nav:#121214}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,Inter,system-ui,sans-serif;font-size:15px;line-height:1.45}
-body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 76px)}
-.wrap{max-width:720px;margin:0 auto;padding:14px}
-h1{font-size:20px;font-weight:600;margin:0 0 2px}.sub{font-size:12px;color:var(--mut)}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
-.card h3{font-size:12px;font-weight:600;margin:0 0 10px;color:var(--mut);letter-spacing:.05em;text-transform:uppercase}
-.row{display:grid;gap:8px;margin-bottom:8px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
-label{font-size:11px;color:var(--mut);display:block;margin-bottom:3px}
-input,select{width:100%;background:#1d1d20;color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:9px;font-size:14px;font-family:inherit}
-input:focus,select:focus{outline:none;border-color:var(--acc)}
-button{font-family:inherit;cursor:pointer}
-.btn{background:var(--acc);color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:14px;font-weight:600}
-.btn.sec{background:#232326;color:var(--fg)}
-.btn.sm{padding:6px 11px;font-size:12.5px}
-.x{background:transparent;border:none;color:var(--mut);font-size:17px;padding:2px 6px}
-.item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd);align-items:flex-start}
-.item:last-child{border-bottom:none}.item .b{flex:1;min-width:0}
-.item.done .b{opacity:.42}.item.done .nm{text-decoration:line-through}
-.item.skipped .b{opacity:.38}.item.skipped .nm{text-decoration:line-through}
-.item.off .b{opacity:.4}
-.nm{font-weight:600;font-size:14px}.meta{font-size:12px;color:var(--mut);margin-top:2px}
-.badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#232326;color:var(--mut);margin-left:5px}
-.u{font-weight:700;font-size:14px;color:var(--fg)}
-.tl{border-left:2px solid var(--bd);margin-left:6px}
-.ev{position:relative;padding:0 0 14px 16px}
-.ev:before{content:'';position:absolute;left:-6px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--bd)}
-.ev.rx:before{background:var(--ok)}.ev.pin:before{background:var(--acc)}.ev.iso:before{background:var(--oil)}.ev.supp:before{background:#a855f7}
-.tm{font-size:12px;font-weight:600;color:var(--mut)}
-.warn{color:var(--warn)}.ok{color:var(--ok)}.empty{color:var(--mut);font-size:13px;padding:8px 0}
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{text-align:left;font-size:11px;color:var(--mut);font-weight:600;padding:6px;border-bottom:1px solid var(--bd)}
-td{padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}tr:last-child td{border-bottom:none}
-.note{font-size:12px;color:var(--mut);margin-top:8px}
-.fl{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.editb{background:#1d1d20;border:1px solid var(--acc);border-radius:12px;padding:14px;margin-bottom:12px}
-.chk{flex:0 0 30px;width:30px;height:30px;border-radius:9px;border:2px solid var(--bd);background:transparent;color:transparent;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0}
-.chk.on{background:var(--ok);border-color:var(--ok);color:#0b0b0c}
-.chk.sk{background:#3a3a42;border-color:#3a3a42;color:var(--mut)}
-.pz{flex:0 0 26px;width:26px;height:26px;border-radius:7px;border:1px solid var(--bd);background:transparent;color:var(--mut);font-size:12px;padding:0;display:flex;align-items:center;justify-content:center}
-.pz.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-.dy{width:32px;height:32px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--mut);font-size:12px;padding:0;font-family:inherit}
-.dy.on{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
-.prog{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.pbar{flex:1;height:8px;border-radius:99px;background:var(--bd);overflow:hidden}
-.pbar i{display:block;height:100%;background:var(--ok);transition:width .2s}
+:root{--bg:#0b0d10;--card:#14181d;--card2:#1a2027;--line:#242a32;--tx:#e8ecf1;--dim:#8b95a3;--acc:#4da3ff;--ok:#35c07a;--warn:#e8a33d;--bad:#e0605a}
+@media(prefers-color-scheme:light){:root{--bg:#f5f6f8;--card:#fff;--card2:#eef1f4;--line:#e0e4ea;--tx:#12161b;--dim:#65707d;--acc:#0a66c2;--ok:#128a53;--warn:#a9691a;--bad:#b8382f}}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+h1{font-size:17px;margin:0;font-weight:700}
+.sub{font-size:12px;color:var(--dim);margin-top:2px}
+main{padding:12px 14px 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.card h2{font-size:14px;margin:0 0 8px;font-weight:650;color:var(--tx)}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.chk{width:26px;height:26px;flex:0 0 26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-size:15px;cursor:pointer}
+.chk.on{background:var(--ok);border-color:var(--ok);color:#04140c}
+.nm{flex:1;min-width:0}
+.nm b{display:block;font-size:15px;font-weight:600}
+.nm span{font-size:12px;color:var(--dim)}
+.dose{background:none;border:0;color:var(--dim);font:inherit;font-size:12px;padding:2px 0;text-align:left;border-bottom:1px dashed var(--dim);cursor:pointer}
+.done .nm b{color:var(--dim);text-decoration:line-through}
+.skip{background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:6px 9px;font-size:12px;font-weight:600;cursor:pointer}
+.skip.on{background:var(--card2);color:var(--warn);border-color:var(--warn)}
+.struck .nm b{text-decoration:line-through;color:var(--warn)}
+button{font-family:inherit}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:11px 14px;font-size:15px;font-weight:650;cursor:pointer;width:100%}
+.btn.alt{background:var(--card2);color:var(--tx);border:1px solid var(--line)}
+.btn.sm{padding:8px 11px;font-size:13px;width:auto}
+.btn.bad{background:var(--bad)}
+input,select,textarea{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--tx);border-radius:9px;padding:10px;font:inherit;font-size:15px}
+label{font-size:12px;color:var(--dim);display:block;margin:8px 0 4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pill{display:inline-block;font-size:11px;padding:3px 7px;border-radius:99px;background:var(--card2);color:var(--dim);border:1px solid var(--line)}
+.pill.ok{color:var(--ok);border-color:var(--ok)}
+.pill.warn{color:var(--warn);border-color:var(--warn)}
+.pill.bad{color:var(--bad);border-color:var(--bad)}
+.pill.acc{color:var(--acc);border-color:var(--acc)}
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:30}
+nav a{padding:11px 0 12px;text-align:center;font-size:11px;color:var(--dim);text-decoration:none;font-weight:600}
+nav a.on{color:var(--acc)}
+nav a i{display:block;font-size:17px;font-style:normal;margin-bottom:2px}
+.mono{font-variant-numeric:tabular-nums}
+.dim{color:var(--dim);font-size:13px}
+.tiny{font-size:11px;color:var(--dim)}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cd{font-size:10px;color:var(--mut);text-align:center;padding:4px 0;font-weight:600}
-.cell{aspect-ratio:1;border:1px solid var(--bd);border-radius:8px;padding:4px 3px;display:flex;flex-direction:column;align-items:center;gap:2px;background:transparent;font-family:inherit;color:var(--fg);font-size:11px}
-.cell.blank{border:none}.cell.today{border-color:var(--acc);background:#1a2436}.cell.sel{border-color:var(--fg)}
-.cell .dn{font-weight:600;font-size:11px}
-.dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
-.dot{width:5px;height:5px;border-radius:50%;background:var(--acc)}
-.dot.oral{background:var(--ok)}.dot.oil{background:var(--oil)}.dot.one{background:#a855f7}
-.dot.rare{width:7px;height:7px;box-shadow:0 0 0 1.5px var(--bg),0 0 0 2.5px currentColor}
-.bodyfig{display:flex;gap:10px;justify-content:center;margin:8px 0}
-.site{fill:#232326;stroke:#3a3a40;stroke-width:2;cursor:pointer}
-.site.fresh{fill:#ff5c5c;stroke:#ff8a8a}.site.mid{fill:#f5a524;stroke:#ffc76b}.site.ready{fill:#35c46a;stroke:#6fe39a}
-.legend{display:flex;gap:14px;justify-content:center;font-size:11px;color:var(--mut);margin-top:6px}
-.lg{display:flex;align-items:center;gap:4px}.lgc{width:9px;height:9px;border-radius:50%}
-.nav{position:fixed;bottom:0;left:0;right:0;background:var(--nav);border-top:1px solid var(--bd);display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:9}
-.nb{flex:1;background:none;border:none;color:var(--mut);font-size:10px;padding:5px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit}
-.nb.on{color:var(--acc)}
-.nb i{font-size:17px;font-style:normal;line-height:1}
-.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.s{background:#1a1a1d;border-radius:10px;padding:10px;text-align:center}
-.sv{font-size:20px;font-weight:600}.sl{font-size:10px;color:var(--mut)}
-.chart{width:100%;display:block}
-.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.ph{position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:#1a1a1d}
-.ph img{width:100%;height:100%;object-fit:cover;display:block}
-.ph .dt{position:absolute;bottom:0;left:0;right:0;font-size:9.5px;padding:3px 5px;background:rgba(0,0,0,.65);color:#fff}
-.ph .dl{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:6px;font-size:12px;width:20px;height:20px;line-height:1}
-.mk{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--bd)}
-.mk:last-child{border-bottom:none}
-.mk .b{flex:1;min-width:0}
-.v{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
-.v.hi{color:var(--warn)}.v.lo{color:var(--oil)}.v.in{color:var(--ok)}
-.more{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.more button{background:#1d1d20;border:1px solid var(--bd);border-radius:10px;padding:16px 10px;color:var(--fg);font-size:13.5px;font-family:inherit;font-weight:500;text-align:left}
-.prompt{background:#1a2436;border:1px solid var(--acc);border-radius:10px;padding:12px;margin-top:10px}
+.cal .hd{text-align:center;font-size:10px;color:var(--dim);padding-bottom:2px}
+.cal .d{aspect-ratio:1;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;cursor:pointer;position:relative;background:var(--card)}
+.cal .d.out{opacity:.35}
+.cal .d.tod{border-color:var(--acc)}
+.cal .d .dot{width:5px;height:5px;border-radius:50%;background:var(--acc);margin-top:2px}
+.cal .d .dot.p{background:#a06bff}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:20px;z-index:60;overflow:auto}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;max-width:420px;width:100%}
+.sheet h3{margin:0 0 6px;font-size:16px}
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1 id="ttl">Stack</h1>
-<div class="sub" id="sub"></div>
-<div id="view"></div>
-</div>
-<div class="nav" id="nav"></div>
+<div id="app"></div>
+<nav>
+<a href="#today" data-t="today"><i>◎</i>Today</a>
+<a href="#body" data-t="body"><i>◔</i>Body</a>
+<a href="#labs" data-t="labs"><i>⌁</i>Labs</a>
+<a href="#sites" data-t="sites"><i>◈</i>Sites</a>
+<a href="#more" data-t="more"><i>≡</i>More</a>
+</nav>
 <script>
-const BUILD='v11';
-const KEY='stack_v1';
-const SYK='stack_sync';
-const CLS=[['glp1','GLP-1'],['amylin','Amylin'],['aas','Oil'],['oral','Oral AAS'],['hcg','hCG'],['ghs','GH secretagogue'],['nad','NAD+'],['heal','Healing peptide'],['skin','Skin peptide'],['mito','Metabolic'],['stim','Stimulant'],['ssri','SSRI'],['abx','Antibiotic'],['bp','BP med'],['pde5','PDE5'],['supp','Supplement'],['rx','Other Rx']];
-const ROUTE=[['subq','SubQ'],['im','IM'],['iv','IV'],['oral','Oral'],['nasal','Nasal']];
-const FREQ=[['daily','Daily'],['bid','2x daily'],['eod','Every other day'],['2xw','2x / wk'],['3xw','3x / wk'],['weekly','Weekly'],['custom','Custom days'],['prn','As needed']];
-const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const SITES=['Abdomen L','Abdomen R','Thigh L','Thigh R','Glute L','Glute R','Delt L','Delt R'];
-const MARKS=[['hct','Hematocrit','%',38.8,50,'Donate above 52%'],['e2','Estradiol','pg/mL',10,40,'Crashed E2 wrecks erections'],['prl','Prolactin','ng/mL',4,15.2,'High = ED'],['psa','PSA','ng/mL',0,4,'Baseline matters at 52'],['tt','Total testosterone','ng/dL',264,916,''],['ft','Free testosterone','pg/mL',50,224,''],['shbg','SHBG','nmol/L',16,55,''],['tsh','TSH','mIU/L',0.45,4.5,''],['ft4','Free T4','ng/dL',0.82,1.77,''],['a1c','HbA1c','%',4,5.6,'GLP-1 moves this'],['glu','Fasting glucose','mg/dL',70,99,''],['ins','Fasting insulin','uIU/mL',2,19,''],['ldl','LDL','mg/dL',0,100,'Oils push this'],['hdl','HDL','mg/dL',40,100,''],['trig','Triglycerides','mg/dL',0,150,''],['alt','ALT','U/L',7,56,'Orals raise this'],['ast','AST','U/L',10,40,''],['creat','Creatinine','mg/dL',0.7,1.3,'Creatine raises this'],['crp','hs-CRP','mg/L',0,3,''],['vitd','Vitamin D','ng/mL',30,100,''],['ferr','Ferritin','ng/mL',30,400,''],['igf','IGF-1','ng/mL',75,216,'Tesamorelin raises this'],['b12','B12','pg/mL',200,900,'']];
-const cN=i=>(CLS.find(c=>c[0]===i)||['','Other'])[1];
-const rN=i=>(ROUTE.find(c=>c[0]===i)||['',''])[1];
-const fN=i=>(FREQ.find(c=>c[0]===i)||['',''])[1];
-const uid=()=>Math.random().toString(36).slice(2,9);
-const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-const t0=()=>new Date().toISOString().slice(0,10);
-const conc=c=>c.bac>0?c.mg/c.bac:0;
-const vol=(c,d)=>{const k=conc(c);return k>0?d/k:0;};
-const un=(c,d)=>vol(c,d)*100;
-const mgLbl=d=>d<1?(+(d*1000).toFixed(1))+' mcg':d+' mg';
-const doseLbl=c=>`<span class="u">${un(c,c.dose).toFixed(1)} units</span> <span class="meta">(${mgLbl(c.dose)})</span>`;
-const dayStr=c=>(c.days&&c.days.length)?' · '+c.days.map(d=>DAYS[d]).join('/'):'';
-const pins=c=>(!c.route||c.route==='oral')?0:(c.freq==='daily'?7:c.freq==='bid'?14:c.freq==='eod'?3.5:c.freq==='2xw'?2:c.freq==='3xw'?3:c.freq==='weekly'?1:(c.days||[]).length);
-const live=c=>c.status==='active'&&!c.paused;
-let SY={token:'',gist:'',auto:false,last:''};
-try{SY=Object.assign(SY,JSON.parse(localStorage.getItem(SYK)||'{}'));}catch(e){}
-function saveSY(){localStorage.setItem(SYK,JSON.stringify(SY));}
-let S=load();
-function mk(n,cls,route,mg,bac,dose,f,t,t2,site,note){
-const days=f==='2xw'?[1,4]:f==='3xw'?[1,3,5]:[];
-return{id:uid(),name:n,cls:cls,route:route,mg:mg,bac:bac,dose:dose,freq:f,days:days,time:t,time2:t2||'',site:site,note:note||'',start:t0(),used:0,status:'active',paused:false};}
-function sp(n,dose,t,note,on){return{id:uid(),name:n,cls:'supp',dose:dose,freq:'daily',time:t,note:note||'',start:t0(),on:!!on};}
-function fresh(){return{tab:'today',editing:null,calMonth:0,selDay:null,logDate:null,done:{},skip:{},lastLog:null,sites:{},weight:[],labs:[],oneoffs:[],compounds:[
-mk('NAD+','nad','subq',1200,12,25,'2xw','07:30','','Abdomen L','Pin early, not at night.'),
-mk('BPC-157','heal','subq',10,2,0.25,'bid','08:00','20:00','Abdomen R','250-500mcg 2x/day.'),
-mk('GHK-Cu','skin','subq',50,3,1,'daily','20:00','','Thigh L','Combined cartridge with BPC. 30 on / 30 off.'),
-mk('Thymosin a-1','heal','subq',10,2,1.6,'2xw','08:00','','Glute R','1.6mg 2x/wk.'),
-mk('Glutathione','mito','im',1200,6,200,'2xw','08:00','','Delt L','IM. Stings SubQ.'),
-mk('hCG','hcg','subq',5000,2,250,'2xw','08:00','','Abdomen L','250iu x2.'),
-mk('Tesamorelin','ghs','subq',10,2,1,'daily','21:30','','Thigh R','Fasted, 2h after food.'),
-mk('Tirzepatide','glp1','subq',15,1.5,5,'weekly','08:00','','Abdomen R','BRIDGE at 5mg.'),
-mk('Test Cyp','aas','im',200,5,75,'2xw','09:00','','Glute L','75mg Mon/Thu.'),
-mk('Primo','aas','im',100,10,100,'2xw','09:00','','Glute R','Same barrel as test. Watch E2.'),
-mk('KPV','heal','subq',30,3,0.5,'daily','08:00','','Abdomen R','500mcg, 5 on / 2 off.'),
-mk('Retatrutide','glp1','subq',60,3,2,'weekly','08:00','','Abdomen L','START 2mg x2wk, then 4mg.'),
-mk('TB-500','heal','subq',10,2,2.5,'2xw','08:00','','Glute L','Out of stock.')
-],meds:[
-{id:uid(),name:'Lisdexamfetamine',cls:'stim',dose:'50 mg',freq:'daily',days:[],time:'07:00',start:t0()},
-{id:uid(),name:'Fluoxetine',cls:'ssri',dose:'20 mg',freq:'daily',days:[],time:'08:00',start:t0()},
-{id:uid(),name:'Doxycycline',cls:'abx',dose:'100 mg',freq:'daily',days:[],time:'10:00',start:t0()},
-{id:uid(),name:'Tadalafil',cls:'pde5',dose:'5 mg',freq:'daily',days:[],time:'08:00',start:t0()},
-{id:uid(),name:'Propranolol',cls:'bp',dose:'10-20 mg',freq:'prn',days:[],time:'PRN',start:t0()},
-{id:uid(),name:'Sildenafil',cls:'pde5',dose:'50 mg',freq:'prn',days:[],time:'PRN',start:t0()}
-],supps:[
-sp('Whey isolate','2 scoops (50g)','08:00','Dairy - 2h from doxy.',true),
-sp('Creatine monohydrate','5 g','08:00','Raises creatinine.',true),
-sp('Electrolytes','1 serving','08:00','Essential on a GLP-1.',true),
-sp('Vitamin D3 + K2','4000 IU / 100 mcg','12:00','With fat.',false),
-sp('Omega-3','2-3 g EPA/DHA','12:00','With food.',false),
-sp('NAC','600 mg','12:00','',false),
-sp('Citrus bergamot','500 mg','12:00','',false),
-sp('Psyllium husk','5 g','19:00','',false),
-sp('Magnesium glycinate','400 mg','21:00','Night, away from doxy.',false),
-sp('Zinc','25 mg','21:00','Balances copper.',false),
-sp('Multivitamin','1 tab','21:00','Night - binds doxy.',false),
-sp('Berberine','500 mg','08:00','Additive with GLP-1.',false),
-sp('Taurine','2 g','08:00','',false)
-],storage:[
-{id:uid(),name:'Thymosin a-1 5 mg',cls:'heal',qty:'1 vial',note:'Recon 1mL so 1.6mg = 32u'},
-{id:uid(),name:'Anavar',cls:'oral',qty:'inventory',note:'HOLD 25-50mg'},
-{id:uid(),name:'Dianabol',cls:'oral',qty:'inventory',note:'HOLD'},
-{id:uid(),name:'Winstrol',cls:'oral',qty:'inventory',note:'HOLD'},
-{id:uid(),name:'Clenbuterol',cls:'stim',qty:'inventory',note:'HOLD'},
-{id:uid(),name:'Cagrilintide 5 mg',cls:'amylin',qty:'1 vial',note:'Test amylin before Elora'},
-{id:uid(),name:'E250 test E 250',cls:'aas',qty:'3 x 10 mL',note:''},
-{id:uid(),name:'Mast Prop 100',cls:'aas',qty:'3 x 10 mL',note:'Committed phase'},
-{id:uid(),name:'Tren A 100',cls:'aas',qty:'2 x 10 mL',note:'Last push'},
-{id:uid(),name:'NPP 100',cls:'aas',qty:'2 x 10 mL',note:''},
-{id:uid(),name:'C250',cls:'aas',qty:'3 x 10 mL',note:''},
-{id:uid(),name:'S250',cls:'aas',qty:'1 x 10 mL',note:'Confirm ester'},
-{id:uid(),name:'YK-11 50 mg/mL',cls:'oral',qty:'1 vial',note:''},
-{id:uid(),name:'SLU-PP-32',cls:'mito',qty:'1 vial',note:''},
-{id:uid(),name:'Amino The Shredder',cls:'supp',qty:'1 vial',note:''},
-{id:uid(),name:'HVY AM Shred',cls:'supp',qty:'2 vials',note:''},
-{id:uid(),name:'HVY Pre Shred',cls:'supp',qty:'2 vials',note:''},
-{id:uid(),name:'HVY L-Glutamine',cls:'supp',qty:'600 mL',note:''},
-{id:uid(),name:'ARA-290 12 mg',cls:'heal',qty:'5 vials',note:'2.4mL = 5mg/mL'},
-{id:uid(),name:'5-amino-1MQ 100 mg',cls:'mito',qty:'2 vials + caps',note:'Use the caps'},
-{id:uid(),name:'Selank 5 mg',cls:'heal',qty:'4 vials',note:''},
-{id:uid(),name:'VIP 5.8 mg',cls:'heal',qty:'4 vials',note:''},
-{id:uid(),name:'hCG 2000 iu',cls:'hcg',qty:'3 vials',note:''},
-{id:uid(),name:'Tirzepatide 15 mg',cls:'glp1',qty:'1 vial',note:'spare'},
-{id:uid(),name:'GHK-Cu 50 mg',cls:'skin',qty:'4 vials',note:'spare'},
-{id:uid(),name:'Glutathione 1200 mg',cls:'mito',qty:'10+ vials',note:'spare'},
-{id:uid(),name:'NAD+ large vial',cls:'nad',qty:'6 vials',note:'VERIFY mg'},
-{id:uid(),name:'Retatrutide 60 mg',cls:'glp1',qty:'2 vials',note:'incoming'},
-{id:uid(),name:'KPV 30 mg',cls:'heal',qty:'1 kit',note:'incoming'}
-]};}
-function load(){try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);
-['compounds','meds','supps','storage','weight','labs','oneoffs'].forEach(k=>p[k]=p[k]||[]);
-p.done=p.done||{};p.skip=p.skip||{};p.sites=p.sites||{};
-if(p.calMonth===undefined)p.calMonth=0;
-p.supps.forEach(s=>{if(s.on===undefined)s.on=false;});
-p.compounds.forEach(c=>{if(c.paused===undefined)c.paused=false;
- if((c.freq==='2xw'||c.freq==='3xw'||c.freq==='custom')&&(!c.days||!c.days.length))c.days=c.freq==='2xw'?[1,4]:c.freq==='3xw'?[1,3,5]:[1];});
-const cut=new Date(Date.now()-60*864e5).toISOString().slice(0,10);
-Object.keys(p.done).forEach(d=>{if(d<cut)delete p.done[d];});
-Object.keys(p.skip).forEach(d=>{if(d<cut)delete p.skip[d];});
-return p;}}catch(e){}return fresh();}
-let pushT=null;
-function save(){localStorage.setItem(KEY,JSON.stringify(S));
-if(SY.auto&&SY.token&&SY.gist){clearTimeout(pushT);pushT=setTimeout(()=>{pushGist(true);},2500);}}
-const TITLES={today:'Today',body:'Body',labs:'Labs',sites:'Sites',more:'More',cal:'Calendar',stack:'Stack',supps:'Supps',inv:'Inventory',flags:'Flags',tools:'Tools',plan:'Plan',proto:'Proto'};
+"use strict";
+var BUILD="v12";
+var KEYS=["stack_v1","venice_stack_v1","stack_v2","venice_stack_v2"];
+var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function findKey(){for(var i=0;i<KEYS.length;i++){try{if(localStorage.getItem(KEYS[i]))return KEYS[i]}catch(e){}}return "stack_v1"}
+var KEY=findKey(),SKEY="stack_sync";
+function iso(d){var x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")}
+function pd(s){var p=String(s).split("-").map(Number);return new Date(p[0],p[1]-1,p[2])}
+function today(){return iso(new Date())}
+function addDays(s,n){var d=pd(s);d.setDate(d.getDate()+n);return iso(d)}
+function uid(){return Math.random().toString(36).slice(2,9)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function n2(x){return Math.round(x*10)/10}
+
+function blank(){return {compounds:[],meds:[],storage:[],done:{},skips:{},oneoff:[],body:[],labs:[],sites:[],settings:{unitsPerMl:100},protocols:[]}}
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&typeof o==="object")return o}}catch(e){}return blank()}
+var S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+var DEFAULT_SITES=["Abdomen L","Abdomen R","Thigh L","Thigh R","Delt L","Delt R","Ventrogluteal L","Ventrogluteal R","Glute L","Glute R"];
+var LABS=["Hematocrit","Hemoglobin","Estradiol","Total T","Free T","SHBG","Prolactin","PSA","IGF-1","A1c","Fasting glucose","Insulin","TSH","Free T4","LDL","HDL","Triglycerides","ALT","AST","Creatinine","eGFR","hs-CRP","Ferritin"];
+var OILRE=/(test|cyp|enanth|prop|undec|sustanon|s250|primo|mast|tren|deca|bold|equipoise|eq\b)/i;
+
+function norm(){
+  var b=blank();
+  Object.keys(b).forEach(function(k){if(S[k]==null)S[k]=b[k]});
+  S.compounds.forEach(function(c){
+    if(!c.id)c.id=uid();
+    if(c.freq==null)c.freq=c.freqType||"daily";
+    c.freqType=c.freq;
+    if(c.doseMg==null)c.doseMg=c.dose!=null?c.dose:0;
+    c.dose=c.doseMg;
+    if(!Array.isArray(c.days)||!c.days.length)c.days=c.freq==="2xw"?[1,4]:[];
+    if(!c.start)c.start=today();
+    if(!c.route)c.route="subq";
+    if(!c.mode){
+      if(c.mgPerMl||c.vialMl)c.mode="liquid";
+      else if(OILRE.test(c.name))c.mode="liquid";
+      else c.mode="powder";
+    }
+    if(c.mode==="liquid"){
+      if(c.vialMl==null)c.vialMl=c.bacMl||1;
+      if(c.mgPerMl==null){
+        var k=(c.vialMg&&c.bacMl)?c.vialMg/c.bacMl:0;
+        if(k>=60){c.mgPerMl=Math.round(k)}
+        else {c.mgPerMl=0;c.needConc=true}
+      }
+      if(c.remainingMl==null)c.remainingMl=c.vialMl;
+    }else{
+      if(c.remainingMl==null)c.remainingMl=c.bacMl||1;
+    }
+  });
+  if(!S.sites.length)S.sites=DEFAULT_SITES.map(function(n){return {n:n,last:null}});
+  if(!S.labs.length)S.labs=LABS.map(function(n){return {n:n,v:[],unit:""}});
+  S.sites=S.sites.filter(function(s,i,a){return a.findIndex(function(x){return x.n===s.n})===i});
+}
+norm();
+
+function conc(c){return c.mode==="liquid"?(+c.mgPerMl||0):(c.vialMg&&c.bacMl?c.vialMg/c.bacMl:0)}
+function unitsFor(c,mg){var k=conc(c);return k>0?mg/k*100:0}
+function mlFor(c,mg){var k=conc(c);return k>0?mg/k:0}
+function dosesLeft(c){var k=conc(c);if(!k||!c.doseMg)return null;return Math.floor((c.remainingMl||0)/mlFor(c,c.doseMg))}
+function concLabel(c){
+  if(c.mode==="liquid")return c.mgPerMl?n2(c.mgPerMl)+" mg/mL":"set mg/mL";
+  var k=conc(c);return k>0?n2(k)+" mg/mL from "+n2(c.vialMg)+" mg/"+n2(c.bacMl)+" mL":"no mix";
+}
+
+function occurs(c,ds){
+  if(c.paused||c.freq==="prn"||c.freq==="off")return false;
+  if(!c.start)return false;
+  var a=pd(c.start),b=pd(ds);
+  if(b<a)return false;
+  var diff=Math.round((b-a)/864e5);
+  if(c.freq==="daily")return true;
+  if(c.freq==="eod")return diff%2===0;
+  if(c.freq==="2xw")return (c.days||[]).indexOf(b.getDay())>-1;
+  if(c.freq==="weekly")return b.getDay()===a.getDay();
+  if(c.freq==="once")return diff===0;
+  return false;
+}
+function isDone(ds,id){return !!(S.done[ds]&&S.done[ds][id])}
+function isSkip(ds,id){return (S.skips[ds]||[]).indexOf(id)>-1}
+
+function logDose(id,ds,mg){
+  var c=S.compounds.find(function(x){return x.id===id});if(!c)return false;
+  var dmg=(mg!=null&&+mg>0)?+mg:c.doseMg;
+  if(!dmg||dmg<=0)return false;
+  if(isDone(ds,id)){
+    var old=S.done[ds][id];
+    c.remainingMl=Math.max(0,(c.remainingMl||0)+mlFor(c,old.mg||c.doseMg)-mlFor(c,dmg));
+    S.done[ds][id]={t:old.t,mg:dmg,units:n2(unitsFor(c,dmg))};
+    save();return true;
+  }
+  S.done[ds][id]={t:Date.now(),units:n2(unitsFor(c,dmg)),mg:dmg};
+  c.remainingMl=Math.max(0,(c.remainingMl||0)-mlFor(c,dmg));
+  S.skips[ds]=(S.skips[ds]||[]).filter(function(x){return x!==id});
+  save();return true;
+}
+function undoDose(id,ds){
+  var c=S.compounds.find(function(x){return x.id===id});
+  if(S.done[ds]&&S.done[ds][id]){
+    var r=S.done[ds][id];
+    if(c)c.remainingMl=(c.remainingMl||0)+mlFor(c,r.mg||c.doseMg);
+    delete S.done[ds][id];save();
+  }
+}
+function toggleSkip(id,ds){
+  var a=S.skips[ds]=S.skips[ds]||[];
+  var i=a.indexOf(id);
+  if(i>-1)a.splice(i,1);else a.push(id);
+  save();
+}
+
+var tab=(location.hash||"#today").slice(1);
+window.addEventListener("hashchange",function(){tab=(location.hash||"#today").slice(1);render()});
+
+function head(title,sub){
+  return '<header><h1>'+esc(title)+'</h1><div class="sub">'+esc(sub)+'</div></header>';
+}
+function doseLine(c,mg){
+  var u=unitsFor(c,mg);
+  return n2(mg)+' mg · '+(u>0?n2(u)+' u':'set conc')+' · '+n2(mlFor(c,mg))+' mL';
+}
+
+function viewToday(){
+  var d=today();
+  var due=S.compounds.filter(function(c){return occurs(c,d)&&!isDone(d,c.id)&&!isSkip(d,c.id)});
+  var done=S.compounds.filter(function(c){return isDone(d,c.id)});
+  var skipped=S.compounds.filter(function(c){return isSkip(d,c.id)&&!isDone(d,c.id)});
+  var total=due.length+done.length+skipped.length;
+  var off=S.compounds.filter(function(c){return !occurs(c,d)&&!c.paused&&c.freq!=="prn"&&c.freq!=="off"&&c.status!=="storage"});
+
+  var h=head("Today",new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"}));
+  h+='<main>';
+  h+='<div class="card"><div class="row" style="border:0;padding:0"><div class="nm"><b class="mono">'+done.length+' of '+total+'</b><span>logged today</span></div><span class="pill '+(done.length===total&&total>0?"ok":"")+'">'+(total?Math.round(done.length/total*100):0)+'%</span></div></div>';
+
+  if(!total)h+='<div class="card"><div class="dim">Nothing scheduled. Add one below or use a one-off.</div></div>';
+
+  if(due.length||skipped.length||done.length){
+    h+='<div class="card"><h2>Doses</h2>';
+    due.forEach(function(c){
+      h+='<div class="row"><div class="chk" data-log="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b><button class="dose" data-dose="'+c.id+'|'+d+'">'+doseLine(c,c.doseMg)+'</button></div><button class="skip" data-skip="'+c.id+'">Skip</button></div>';
+    });
+    skipped.forEach(function(c){
+      h+='<div class="row struck"><div class="chk" data-log="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b><button class="dose" data-dose="'+c.id+'|'+d+'">skipped · '+n2(c.doseMg)+' mg</button></div><button class="skip on" data-skip="'+c.id+'">Unskip</button></div>';
+    });
+    done.forEach(function(c){
+      var r=S.done[d][c.id]||{};
+      h+='<div class="row done"><div class="chk on" data-undo="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b><button class="dose" data-dose="'+c.id+'|'+d+'">'+doseLine(c,r.mg||c.doseMg)+'</button></div><button class="skip" data-skip="'+c.id+'">Skip</button></div>';
+    });
+    h+='</div>';
+  }
+
+  h+='<div class="card"><h2>Backdate a dose</h2><div class="dim" style="margin-bottom:8px">For something you already took on another day.</div>';
+  h+='<label>Compound</label><select id="bdSel">'+S.compounds.filter(function(c){return c.freq!=="prn"}).map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>'}).join("")+'</select>';
+  h+='<div class="grid2"><div><label>Date</label><input type="date" id="bdDate" value="'+addDays(d,-1)+'" max="'+d+'"></div><div><label>Dose (mg)</label><input id="bdDose" type="number" step="0.01" inputmode="decimal"></div></div>';
+  h+='<div class="tiny" id="bdOut" style="margin-top:6px"></div>';
+  h+='<div style="margin-top:10px"><button class="btn" id="bdGo">Log it</button></div></div>';
+
+  h+='<div class="card"><h2>One-off injection</h2><div class="dim" style="margin-bottom:8px">Not on the schedule at all. Shows once, never recurs.</div>';
+  h+='<label>Name</label><input id="ooName" placeholder="e.g. TB-500 2 mg">';
+  h+='<div class="grid2"><div><label>Date</label><input type="date" id="ooDate" value="'+d+'"></div><div><label>Dose (mg)</label><input id="ooMg" type="number" step="0.01" inputmode="decimal"></div></div>';
+  h+='<div style="margin-top:10px"><button class="btn alt" id="ooGo">Add one-off</button></div></div>';
+
+  if(off.length){
+    h+='<div class="card"><h2>Not scheduled today</h2>';
+    off.forEach(function(c){h+='<div class="row"><div class="chk" data-log="'+c.id+'">✓</div><div class="nm"><b>'+esc(c.name)+'</b><button class="dose" data-dose="'+c.id+'|'+d+'">'+doseLine(c,c.doseMg)+'</button></div></div>'});
+    h+='</div>';
+  }
+  h+='</main>';
+  return h;
+}
+
+function viewCal(){
+  var base=S.calMonth?pd(S.calMonth+"-01"):pd(today());
+  base.setDate(1);
+  var y=base.getFullYear(),m=base.getMonth();
+  var first=new Date(y,m,1),start=new Date(first);start.setDate(1-first.getDay());
+  var h='<div class="card"><h2>'+base.toLocaleDateString(undefined,{month:"long",year:"numeric"})+'</h2>';
+  h+='<div class="cal">'+DOW.map(function(x){return '<div class="hd">'+x[0]+'</div>'}).join("");
+  for(var i=0;i<42;i++){
+    var d=new Date(start);d.setDate(start.getDate()+i);
+    var ds=iso(d),out=d.getMonth()!==m,tod=ds===today();
+    var n=S.compounds.filter(function(c){return occurs(c,ds)}).length;
+    var one=S.oneoff.filter(function(o){return o.date===ds}).length;
+    h+='<div class="d'+(out?" out":"")+(tod?" tod":"")+'" data-day="'+ds+'">'+d.getDate()+(n||one?'<div class="dot'+(one?" p":"")+'"></div>':'')+'</div>';
+  }
+  h+='</div><div class="grid2" style="margin-top:10px"><button class="btn alt sm" id="calPrev">Prev</button><button class="btn alt sm" id="calNext">Next</button></div></div>';
+  if(S.calDay){
+    var ds2=S.calDay;
+    h+='<div class="card"><h2>'+esc(pd(ds2).toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}))+'</h2>';
+    var items=S.compounds.filter(function(c){return occurs(c,ds2)});
+    if(!items.length)h+='<div class="dim">Nothing scheduled.</div>';
+    items.forEach(function(c){
+      var dn=isDone(ds2,c.id),r=dn?(S.done[ds2][c.id]||{}):null;
+      h+='<div class="row'+(dn?" done":"")+'"><div class="chk'+(dn?" on":"")+'" data-logday="'+c.id+'|'+ds2+'">'+(dn?"✓":"")+'</div><div class="nm"><b>'+esc(c.name)+'</b><button class="dose" data-dose="'+c.id+'|'+ds2+'">'+doseLine(c,dn&&r.mg?r.mg:c.doseMg)+'</button></div></div>';
+    });
+    S.oneoff.filter(function(o){return o.date===ds2}).forEach(function(o){
+      h+='<div class="row"><div class="nm"><b>'+esc(o.name)+'</b><span class="pill">one-off'+(o.mg?" · "+n2(o.mg)+" mg":"")+'</span></div><button class="skip" data-deloo="'+o.id+'">×</button></div>';
+    });
+    h+='</div>';
+  }
+  return h;
+}
+
+function viewBody(){
+  var h=head("Body","Weight, waist, photos");
+  h+='<main>';
+  h+='<div class="card"><h2>Log today</h2><div class="grid2"><div><label>Weight (lb)</label><input id="bW" type="number" step="0.1" inputmode="decimal"></div><div><label>Waist (in)</label><input id="bWaist" type="number" step="0.25" inputmode="decimal"></div></div><div style="margin-top:10px"><button class="btn" id="bSave">Save</button></div></div>';
+  var rows=S.body.slice().sort(function(a,b){return b.date.localeCompare(a.date)}).slice(0,30);
+  if(rows.length){
+    h+='<div class="card"><h2>History</h2>'+rows.map(function(r){
+      return '<div class="row"><div class="nm"><b class="mono">'+(r.w?r.w+" lb":"—")+'</b><span>'+esc(r.date)+(r.waist?" · "+r.waist+' in':'')+'</span></div></div>';
+    }).join("")+'</div>';
+  }
+  h+=viewCal();
+  h+='</main>';
+  return h;
+}
+
+function viewLabs(){
+  var h=head("Labs","Latest value per marker");
+  h+='<main><div class="card"><h2>Markers</h2>';
+  S.labs.forEach(function(l){
+    var last=l.v&&l.v.length?l.v[l.v.length-1]:null;
+    h+='<div class="row"><div class="nm"><b>'+esc(l.n)+'</b><span>'+(last?esc(last.val)+" · "+esc(last.date):"no data")+'</span></div><button class="skip" data-lab="'+esc(l.n)+'">+</button></div>';
+  });
+  h+='</div></main>';
+  return h;
+}
+
+function viewSites(){
+  var h=head("Sites","Last used per site");
+  h+='<main><div class="card"><h2>Rotation</h2>';
+  var sorted=S.sites.slice().sort(function(a,b){return (a.last||"").localeCompare(b.last||"")});
+  sorted.forEach(function(s){
+    var days=s.last?Math.round((pd(today())-pd(s.last))/864e5):null;
+    var cls=days==null?"":days<3?"bad":days<7?"warn":"ok";
+    h+='<div class="row"><div class="nm"><b>'+esc(s.n)+'</b><span>'+(s.last?esc(s.last)+" · "+days+"d ago":"never")+'</span></div><span class="pill '+cls+'">'+(cls?"":"new")+'</span><button class="skip" data-site="'+esc(s.n)+'">Used</button></div>';
+  });
+  h+='</div></main>';
+  return h;
+}
+
+function viewMore(){
+  var h=head("More","Inventory, meds, sync, tools");
+  h+='<main><div class="card"><h2>Manage</h2>';
+  [["Inventory & protocols","#inv"],["Storage","#storage"],["Medications","#meds"],["Interactions","#conf"],["Sync","#sync"],["Tools","#tools"]].forEach(function(p){
+    h+='<a href="'+p[1]+'" style="text-decoration:none;color:inherit"><div class="row"><div class="nm"><b>'+p[0]+'</b></div><span class="dim">›</span></div></a>';
+  });
+  h+='</div></main>';
+  return h;
+}
+
+function viewInv(){
+  var h=head("Inventory","Tap a compound to edit");
+  h+='<main><div class="card">';
+  S.compounds.forEach(function(c){
+    var dl=dosesLeft(c);
+    h+='<div class="row"><div class="nm"><b>'+esc(c.name)+'</b><span>'+n2(c.doseMg)+' mg '+esc(c.freq)+(c.paused?" · paused":"")+'</span><span>'+esc(concLabel(c))+' · '+n2(c.remainingMl||0)+' mL left'+(dl!=null?" ("+dl+" doses)":"")+'</span>'+(c.needConc?' <span class="pill warn">set mg/mL</span>':'')+'</div><button class="skip" data-edit="'+c.id+'">Edit</button></div>';
+  });
+  h+='</div><div class="card"><h2>Add compound</h2>';
+  h+='<label>Name</label><input id="ncName"><label>Type</label><select id="ncMode"><option value="powder">powder vial (reconstitute)</option><option value="liquid">pre-mixed liquid</option></select>';
+  h+='<div id="ncPow"><div class="grid2"><div><label>Vial mg</label><input id="ncMg" type="number" step="0.1"></div><div><label>BAC mL</label><input id="ncBac" type="number" step="0.1"></div></div></div>';
+  h+='<div id="ncLiq" style="display:none"><div class="grid2"><div><label>mg per mL</label><input id="ncConc" type="number" step="0.1"></div><div><label>Vial mL</label><input id="ncVml" type="number" step="0.1"></div></div></div>';
+  h+='<label>Dose mg</label><input id="ncDose" type="number" step="0.01">';
+  h+='<label>Frequency</label><select id="ncFreq"><option value="daily">daily</option><option value="eod">every other day</option><option value="2xw">twice weekly</option><option value="weekly">weekly</option><option value="prn">PRN</option></select>';
+  h+='<div style="margin-top:10px"><button class="btn" id="ncAdd">Add</button></div></div></main>';
+  return h;
+}
+
+function viewStorage(){
+  var h=head("Storage","Vials and supplies");
+  h+='<main><div class="card">';
+  if(!S.storage.length)h+='<div class="dim">Nothing listed.</div>';
+  S.storage.forEach(function(s,i){
+    h+='<div class="row"><div class="nm"><b>'+esc(s.n)+'</b><span>'+(s.qty!=null?s.qty:"")+' '+(s.unit||"")+'</span></div><button class="skip" data-delst="'+i+'">×</button></div>';
+  });
+  h+='</div><div class="card"><label>Item</label><input id="stN"><div class="grid2"><div><label>Qty</label><input id="stQ" type="number"></div><div><label>Unit</label><input id="stU" placeholder="vials"></div></div><div style="margin-top:10px"><button class="btn" id="stAdd">Add</button></div></div></main>';
+  return h;
+}
+
+function viewMeds(){
+  var h=head("Medications","Prescriptions and PRN");
+  h+='<main><div class="card">';
+  S.meds.forEach(function(m,i){
+    h+='<div class="row"><div class="nm"><b>'+esc(m.n)+'</b><span>'+esc(m.dose||"")+' · '+esc((m.times||[]).join(", ")||"no time set")+'</span></div><button class="skip" data-delmed="'+i+'">×</button></div>';
+  });
+  h+='</div><div class="card"><label>Name</label><input id="mdN"><label>Dose</label><input id="mdD"><label>Times (comma)</label><input id="mdT" placeholder="10:00"><div style="margin-top:10px"><button class="btn" id="mdAdd">Add</button></div></div></main>';
+  return h;
+}
+
+function viewConf(){
+  var R=[];
+  function has(n){return S.compounds.some(function(c){return c.name.toLowerCase().indexOf(n)>-1&&!c.paused})}
+  if(has("tirz")&&has("reta"))R.push(["bad","Tirzepatide and retatrutide both active","Pick one. Two GLP-1s stack nausea."]);
+  if(S.meds.some(function(m){return /propranolol/i.test(m.n)}))R.push(["warn","Propranolol with PDE5 inhibitors","Blunts the tadalafil/sildenafil response and can drop BP. Dose it early, not right before."]);
+  if(S.meds.some(function(m){return /doxy/i.test(m.n)}))R.push(["warn","Doxycycline chelates minerals","Keep calcium, magnesium, iron and dairy 2 h away. 10:00 isolated window."]);
+  if(has("ghk")&&has("bpc"))R.push(["ok","GHK-Cu and BPC-157 in one barrel","Compatible. 25 mg GHK in 6 mL, draw 3 mL into the BPC 10 mg vial, dial 12 units."]);
+  if(has("tirz")||has("reta"))R.push(["info","Incretin + orals","Orals hit faster on an empty stomach; GLP-1 slows gastric emptying. Expect variable onset."]);
+  if(!R.length)R.push(["ok","No flags","Nothing in the active stack conflicts."]);
+  var h=head("Interactions","Live rules on the active stack");
+  h+='<main>'+R.map(function(r){return '<div class="card"><div class="row" style="border:0;padding:0"><div class="nm"><b>'+esc(r[1])+'</b><span>'+esc(r[2])+'</span></div><span class="pill '+r[0]+'">'+r[0]+'</span></div></div>'}).join("");
+  h+='</main>';
+  return h;
+}
+
+function syncCfg(){try{return JSON.parse(localStorage.getItem(SKEY))||{}}catch(e){return {}}}
+function viewSync(){
+  var c=syncCfg();
+  var h=head("Sync","Phone pushes, laptop pulls");
+  h+='<main><div class="card"><h2>Gist</h2><div class="dim" style="margin-bottom:8px">Gist ID: '+esc(c.gistId||"not set")+'</div>';
+  h+='<label>Token</label><input id="syT" value="'+esc(c.token||"")+'"><label>Gist ID</label><input id="syG" value="'+esc(c.gistId||"")+'">';
+  h+='<div class="grid2" style="margin-top:10px"><button class="btn" id="syPush">Push</button><button class="btn alt" id="syPull">Pull</button></div>';
+  h+='<div style="margin-top:8px"><button class="btn alt sm" id="syNew">Create new gist</button> <button class="btn alt sm" id="syForget">Forget token</button></div>';
+  h+='<div class="tiny" style="margin-top:8px">Last: '+esc(c.last||"never")+'</div></div></main>';
+  return h;
+}
+
+function viewTools(){
+  var h=head("Tools","Build "+BUILD);
+  h+='<main><div class="card"><h2>Maintenance</h2>';
+  h+='<button class="btn alt" id="tForce">Force refresh</button><div style="height:8px"></div>';
+  h+='<button class="btn alt" id="tExport">Export JSON</button><div style="height:8px"></div>';
+  h+='<button class="btn alt" id="tImport">Import JSON</button>';
+  h+='</div><div class="card"><h2>Data</h2><div class="dim">'+S.compounds.length+' compounds · '+S.storage.length+' storage · '+Object.keys(S.done).length+' logged days</div></div></main>';
+  return h;
+}
+
 function render(){
-const prim=['today','body','labs','sites','more'];
-document.getElementById('nav').innerHTML=[['today','Today','◉'],['body','Body','▤'],['labs','Labs','◍'],['sites','Sites','◎'],['more','More','≡']].map(n=>`<button class="nb ${S.tab===n[0]||(n[0]==='more'&&!prim.includes(S.tab))?'on':''}" data-tab="${n[0]}"><i>${n[2]}</i>${n[1]}</button>`).join('');
-document.getElementById('ttl').textContent=TITLES[S.tab]||'Stack';
-const act=S.compounds.filter(live);
-document.getElementById('sub').textContent=`${act.length} compounds · ~${Math.round(act.reduce((a,c)=>a+pins(c),0))} pins/wk`;
-let html='';
-if(S.editing){const it=(S[S.editing.k]||[]).find(x=>x.id===S.editing.id);
-if(it)html+=`<div class="editb"><h3 style="font-size:12px;color:var(--mut);margin:0 0 10px;text-transform:uppercase">Edit ${esc(it.name)}</h3>
-<div class="row g2"><div><label>Name</label><input id="eN" value="${esc(it.name)}"></div><div><label>Dose</label><input id="eD" value="${esc(it.dose||'')}"></div></div>
-<div class="row g2"><div><label>Time</label><input id="eT" type="time" value="${it.time&&it.time!=='PRN'?it.time:'08:00'}"></div><div><label>Frequency</label><select id="eF">${FREQ.map(f=>`<option value="${f[0]}" ${it.freq===f[0]?'selected':''}>${f[1]}</option>`).join('')}</select></div></div>
-${it.mg!==undefined?`<div class="row g2"><div><label>Vial mg</label><input id="eM" type="number" value="${it.mg}"></div><div><label>BAC mL</label><input id="eB" type="number" step="0.1" value="${it.bac}"></div></div>`:''}
-<div class="row g2"><div><label>Start date</label><input id="eS" type="date" value="${it.start||t0()}"></div><div></div></div>
-<div class="row"><div><label>Days (for 2x / 3x / custom)</label><div class="fl" id="eDays">${DAYS.map((d,i)=>`<button class="dy ${(it.days||[]).includes(i)?'on':''}" data-eday="${i}">${d[0]}</button>`).join('')}</div></div></div>
-<div class="row"><div><label>Note</label><input id="eNo" value="${esc(it.note||'')}"></div></div>
-<div class="fl"><button class="btn" id="eSave">Save</button><button class="btn sec" id="eCancel">Cancel</button></div></div>`;}
-html+=({today:vToday,body:vBody,labs:vLabs,sites:vRot,more:vMore,cal:vCal,stack:vStack,supps:vSupps,inv:vInv,flags:vFlags,tools:vTools,plan:vPlan,proto:vProto})[S.tab]();
-document.getElementById('view').innerHTML=html;
-if(S.tab==='body')loadPhotos();
+  var v;
+  if(tab==="today")v=viewToday();
+  else if(tab==="body")v=viewBody();
+  else if(tab==="labs")v=viewLabs();
+  else if(tab==="sites")v=viewSites();
+  else if(tab==="inv")v=viewInv();
+  else if(tab==="storage")v=viewStorage();
+  else if(tab==="meds")v=viewMeds();
+  else if(tab==="conf")v=viewConf();
+  else if(tab==="sync")v=viewSync();
+  else if(tab==="tools")v=viewTools();
+  else v=viewMore();
+  document.getElementById("app").innerHTML=v;
+  Array.prototype.forEach.call(document.querySelectorAll("nav a"),function(a){
+    a.className=(a.getAttribute("href")==="#"+tab)?"on":"";
+  });
+  bind();
 }
-document.addEventListener('click',e=>{
-const t=e.target.closest('[data-tab]');if(t){S.tab=t.dataset.tab;S.editing=null;save();render();window.scrollTo(0,0);return;}
-const dy=e.target.closest('[data-eday]');if(dy){dy.classList.toggle('on');return;}
-const ed=e.target.closest('[data-edit]');if(ed){const[k,id]=ed.dataset.edit.split(':');S.editing={k:k,id:id};render();return;}
-if(e.target.id==='eCancel'){S.editing=null;render();return;}
-if(e.target.id==='eSave'){const it=(S[S.editing.k]||[]).find(x=>x.id===S.editing.id);if(it){
-it.name=document.getElementById('eN').value;it.dose=document.getElementById('eD').value;it.freq=document.getElementById('eF').value;
-const tt=document.getElementById('eT').value;it.time=it.freq==='prn'?'PRN':tt;
-const sd=document.getElementById('eS');if(sd&&sd.value)it.start=sd.value;
-const dd=[...document.querySelectorAll('#eDays .dy.on')].map(x=>+x.dataset.eday);
-if(dd.length)it.days=dd;
-if(document.getElementById('eM')){it.mg=+document.getElementById('eM').value;it.bac=+document.getElementById('eB').value;}
-it.note=document.getElementById('eNo').value;S.editing=null;save();render();}return;}
-const d=e.target.closest('[data-del]');if(d){const[k,id]=d.dataset.del.split(':');S[k]=S[k].filter(x=>x.id!==id);save();render();return;}
-const ck=e.target.closest('[data-ck]');if(ck){const[k,id]=ck.dataset.ck.split(':');const ds=t0();
-S.done[ds]=S.done[ds]||{};S.skip[ds]=S.skip[ds]||{};
-if(S.done[ds][id]){delete S.done[ds][id];if(k==='compounds'){const c=S.compounds.find(x=>x.id===id);if(c&&c.used>0)c.used--;}}
-else{delete S.skip[ds][id];S.done[ds][id]=1;if(k==='compounds'){const c=S.compounds.find(x=>x.id===id);if(c)c.used=(c.used||0)+1;}}
-save();render();return;}
-const sk=e.target.closest('[data-skip]');if(sk){const[k,id]=sk.dataset.skip.split(':');const ds=t0();
-S.skip[ds]=S.skip[ds]||{};S.done[ds]=S.done[ds]||{};
-if(S.skip[ds][id]){delete S.skip[ds][id];}
-else{delete S.done[ds][id];S.skip[ds][id]=1;}
-save();render();return;}
-const ol=e.target.closest('[data-offlog]');if(ol){const ds=t0();S.done[ds]=S.done[ds]||{};
-if(S.done[ds][ol.dataset.offlog]){delete S.done[ds][ol.dataset.offlog];}
-else{S.done[ds][ol.dataset.offlog]=1;const c=S.compounds.find(x=>x.id===ol.dataset.offlog);if(c)c.used=(c.used||0)+1;}
-save();render();return;}
-const tg=e.target.closest('[data-tog]');if(tg){const s=S.supps.find(x=>x.id===tg.dataset.tog);if(s){s.on=!s.on;save();render();}return;}
-const pz=e.target.closest('[data-pause]');if(pz){const c=S.compounds.find(x=>x.id===pz.dataset.pause);if(c){c.paused=!c.paused;save();render();}return;}
-const cd=e.target.closest('[data-cell]');if(cd){S.selDay=cd.dataset.cell;S.logDate=cd.dataset.cell;save();render();return;}
-const cm=e.target.closest('[data-mon]');if(cm){S.calMonth+=+cm.dataset.mon;save();render();return;}
-const st=e.target.closest('[data-site]');if(st){S.sites[st.dataset.site]=t0();save();render();return;}
-const pv=e.target.closest('[data-ph]');if(pv){bigPhoto(pv.dataset.ph);return;}
-const pd=e.target.closest('[data-pd]');if(pd){delPhoto(pd.dataset.pd);return;}
-if(e.target.id==='lgGo'){const cid=document.getElementById('lgC').value;const dd=document.getElementById('lgD').value;
- if(!cid||!dd)return;
- S.done[dd]=S.done[dd]||{};S.done[dd][cid]=1;
- const c=S.compounds.find(x=>x.id===cid);if(c)c.used=(c.used||0)+1;
- S.lastLog={id:cid,d:dd};save();render();return;}
-const ul=e.target.closest('[data-unlog]');if(ul){const dd=S.logDate||t0();
- if(S.done[dd]&&S.done[dd][ul.dataset.unlog]){delete S.done[dd][ul.dataset.unlog];
- const c=S.compounds.find(x=>x.id===ul.dataset.unlog);if(c&&c.used>0)c.used--;save();render();}return;}
-if(e.target.id==='ooGo'){const n=document.getElementById('ooN').value.trim();const dd=document.getElementById('ooD').value;
- if(!n||!dd){alert('Name and date required');return;}
- S.oneoffs.push({id:uid(),name:n,d:dd,note:document.getElementById('ooNo').value.trim()});
- save();render();return;}
-if(e.target.id==='skipToday'){const ll=S.lastLog;if(ll){S.skip[t0()]=S.skip[t0()]||{};S.skip[t0()][ll.id]=1;S.lastLog=null;save();render();}return;}
-if(e.target.id==='keepBoth'){S.lastLog=null;save();render();return;}
-});
-function occurs(x,d){const s=new Date(x.start+'T00:00:00'),dt=new Date(d+'T00:00:00');if(dt<s)return false;const df=Math.round((dt-s)/864e5);
-if(x.freq==='daily'||x.freq==='bid')return true;if(x.freq==='eod')return df%2===0;if(x.freq==='weekly')return df%7===0;
-if(x.freq==='2xw'||x.freq==='3xw'||x.freq==='custom')return(x.days||[]).includes(dt.getDay());return false;}
-function dayItems(ds,withSupp){
-const a=[...S.compounds.filter(c=>live(c)&&occurs(c,ds)).map(x=>({...x,k:'compounds',kind:'pin'})),
-...S.meds.filter(m=>m.freq!=='prn'&&occurs(m,ds)).map(x=>({...x,k:'meds',kind:'rx'}))];
-if(withSupp)a.push(...S.supps.filter(s=>s.on&&s.freq!=='prn'&&occurs(s,ds)).map(x=>({...x,k:'supps',kind:'supp'})));
-return a.sort((x,y)=>String(x.time).localeCompare(String(y.time)));
+
+function modal(html){
+  closeModal();
+  var w=document.createElement("div");
+  w.className="modal";w.id="mdl";
+  w.innerHTML='<div class="sheet">'+html+'</div>';
+  document.body.appendChild(w);
 }
-function logCard(){
-const dd=S.logDate||t0();
-const done=S.done[dd]||{};
-const logged=Object.keys(done).map(id=>S.compounds.find(c=>c.id===id)||S.meds.find(m=>m.id===id)||S.supps.find(s=>s.id===id)).filter(Boolean);
-const ll=S.lastLog;
-const llc=ll?S.compounds.find(c=>c.id===ll.id):null;
-const prompt=llc&&ll.d!==t0()&&occurs(llc,t0())&&!(S.skip[t0()]||{})[llc.id]
-?`<div class="prompt"><div class="meta" style="color:var(--fg)"><b>${esc(llc.name)}</b> is also scheduled today. It is still showing as due.</div>
-<div class="fl"><button class="btn sm" id="skipToday">Skip today's</button><button class="btn sec sm" id="keepBoth">Keep both</button></div></div>`:'';
-return `<div class="card"><h3>Log a dose on any date</h3>
-<div class="row g2"><div><label>Compound</label><select id="lgC">${S.compounds.filter(live).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
-<div><label>Date</label><input id="lgD" type="date" value="${dd}" max="${t0()}"></div></div>
-<button class="btn" id="lgGo">Log it</button>
-${prompt}
-${logged.length?`<div class="note">Already logged on ${dd}:</div>${logged.map(x=>`<div class="item"><div class="b"><div class="nm" style="font-size:13px">${esc(x.name)}</div></div><button class="x" data-unlog="${x.id}">×</button></div>`).join('')}`:''}
-<div class="note">Backdating records history. It does not move the schedule.</div></div>`;
+function closeModal(){var m=document.getElementById("mdl");if(m)m.remove()}
+
+function doseModal(id,ds){
+  var c=S.compounds.find(function(x){return x.id===id});if(!c)return;
+  var logged=isDone(ds,id);
+  var cur=logged?(S.done[ds][id].mg||c.doseMg):c.doseMg;
+  modal('<h3>'+esc(c.name)+'</h3><div class="dim">'+(ds===today()?"Today":esc(ds))+' · default '+n2(c.doseMg)+' mg · '+esc(concLabel(c))+'</div><label>Dose (mg)</label><input id="dm" type="number" step="0.01" inputmode="decimal" value="'+n2(cur)+'"><div class="tiny" id="dout" style="margin-top:6px"></div><div style="height:12px"></div><button class="btn" id="dgo">'+(logged?"Update logged dose":"Log it")+'</button><div style="height:8px"></div><button class="btn alt" id="ddef">Reset to '+n2(c.doseMg)+' mg</button><div style="height:8px"></div><button class="btn alt" id="dcancel">Cancel</button>');
+  function upd(){
+    var v=+document.getElementById("dm").value||0;
+    document.getElementById("dout").textContent=v>0?(n2(unitsFor(c,v))+" units · "+n2(mlFor(c,v))+" mL"):"enter a dose";
+  }
+  document.getElementById("dm").oninput=upd;upd();
+  document.getElementById("dgo").onclick=function(){
+    var v=+document.getElementById("dm").value;
+    if(!v||v<=0)return;
+    logDose(id,ds,v);closeModal();render();
+  };
+  document.getElementById("ddef").onclick=function(){document.getElementById("dm").value=n2(c.doseMg);upd()};
+  document.getElementById("dcancel").onclick=closeModal;
 }
-function oneoffCard(){
-const d=t0();
-const list=S.oneoffs.filter(o=>o.d===d);
-return `<div class="card"><h3>One-off injection</h3>
-<div class="row g2"><div><label>Name</label><input id="ooN" placeholder="TB-500 2.5mg"></div><div><label>Date</label><input id="ooD" type="date" value="${d}" max="${t0()}"></div></div>
-<div class="row"><div><label>Note (optional)</label><input id="ooNo" placeholder="site or reason"></div></div>
-<button class="btn" id="ooGo">Log one-off</button>
-${list.length?`<div class="note">Today:</div>${list.map(o=>`<div class="item"><div class="b"><div class="nm" style="font-size:13px">${esc(o.name)}<span class="badge">one-off</span></div>${o.note?`<div class="meta">${esc(o.note)}</div>`:''}</div><button class="x" data-del="oneoffs:${o.id}">×</button></div>`).join('')}`:''}
-<div class="note">For anything not in your stack.</div></div>`;
+
+function bind(){
+  function q(s){return document.querySelector(s)}
+  document.querySelectorAll("[data-log]").forEach(function(el){
+    el.onclick=function(){
+      var id=el.getAttribute("data-log");
+      if(isDone(today(),id)){undoDose(id,today())}else{logDose(id,today())}
+      render();
+    };
+  });
+  document.querySelectorAll("[data-undo]").forEach(function(el){
+    el.onclick=function(){undoDose(el.getAttribute("data-undo"),today());render()};
+  });
+  document.querySelectorAll("[data-skip]").forEach(function(el){
+    el.onclick=function(){toggleSkip(el.getAttribute("data-skip"),today());render()};
+  });
+  document.querySelectorAll("[data-dose]").forEach(function(el){
+    el.onclick=function(){var p=el.getAttribute("data-dose").split("|");doseModal(p[0],p[1])};
+  });
+  document.querySelectorAll("[data-logday]").forEach(function(el){
+    el.onclick=function(){
+      var p=el.getAttribute("data-logday").split("|");
+      if(isDone(p[1],p[0]))undoDose(p[0],p[1]);else logDose(p[0],p[1]);
+      render();
+    };
+  });
+  document.querySelectorAll("[data-day]").forEach(function(el){
+    el.onclick=function(){S.calDay=el.getAttribute("data-day");save();render()};
+  });
+  document.querySelectorAll("[data-deloo]").forEach(function(el){
+    el.onclick=function(){S.oneoff=S.oneoff.filter(function(o){return o.id!==el.getAttribute("data-deloo")});save();render()};
+  });
+  document.querySelectorAll("[data-delst]").forEach(function(el){
+    el.onclick=function(){S.storage.splice(+el.getAttribute("data-delst"),1);save();render()};
+  });
+  document.querySelectorAll("[data-delmed]").forEach(function(el){
+    el.onclick=function(){S.meds.splice(+el.getAttribute("data-delmed"),1);save();render()};
+  });
+  document.querySelectorAll("[data-site]").forEach(function(el){
+    el.onclick=function(){
+      var n=el.getAttribute("data-site");
+      S.sites.forEach(function(s){if(s.n===n)s.last=today()});
+      save();render();
+    };
+  });
+  document.querySelectorAll("[data-lab]").forEach(function(el){
+    el.onclick=function(){
+      var n=el.getAttribute("data-lab");
+      modal('<h3>'+esc(n)+'</h3><label>Value</label><input id="lv"><label>Date</label><input id="ld" type="date" value="'+today()+'"><div style="height:10px"></div><button class="btn" id="lgo">Save</button> <button class="btn alt" id="lcancel">Cancel</button>');
+      document.getElementById("lgo").onclick=function(){
+        var l=S.labs.find(function(x){return x.n===n});
+        if(l){l.v.push({val:document.getElementById("lv").value,date:document.getElementById("ld").value});save()}
+        closeModal();render();
+      };
+      document.getElementById("lcancel").onclick=closeModal;
+    };
+  });
+  document.querySelectorAll("[data-edit]").forEach(function(el){
+    el.onclick=function(){editCompound(el.getAttribute("data-edit"))};
+  });
+
+  if(q("#bdSel")){
+    var updBd=function(){
+      var c=S.compounds.find(function(x){return x.id===q("#bdSel").value});
+      if(!c)return;
+      q("#bdDose").value=n2(c.doseMg);
+      q("#bdOut").textContent=n2(unitsFor(c,c.doseMg))+" units · "+n2(mlFor(c,c.doseMg))+" mL";
+    };
+    q("#bdSel").onchange=updBd;updBd();
+    q("#bdDose").oninput=function(){
+      var c=S.compounds.find(function(x){return x.id===q("#bdSel").value});
+      if(!c)return;
+      var v=+q("#bdDose").value||0;
+      q("#bdOut").textContent=v>0?(n2(unitsFor(c,v))+" units · "+n2(mlFor(c,v))+" mL"):"enter a dose";
+    };
+    q("#bdGo").onclick=function(){
+      var id=q("#bdSel").value,ds=q("#bdDate").value,mg=+q("#bdDose").value;
+      if(!id||!ds)return;
+      if(!logDose(id,ds,mg)){render();return}
+      var c=S.compounds.find(function(x){return x.id===id});
+      render();
+      if(ds!==today()&&c&&occurs(c,today())&&!isDone(today(),id)&&!isSkip(today(),id)){
+        modal('<h3>'+esc(c.name)+'</h3><div class="dim">Logged on '+esc(ds)+'. It is also scheduled today. Skip today\'s or keep both?</div><div style="height:12px"></div><button class="btn" id="mSkip">Skip today\'s</button><div style="height:8px"></div><button class="btn alt" id="mKeep">Keep both</button>');
+        document.getElementById("mSkip").onclick=function(){toggleSkip(id,today());closeModal();render()};
+        document.getElementById("mKeep").onclick=closeModal;
+      }
+    };
+  }
+
+  if(q("#ooGo"))q("#ooGo").onclick=function(){
+    var n=q("#ooName").value.trim();if(!n)return;
+    S.oneoff.push({id:uid(),name:n,date:q("#ooDate").value||today(),mg:+q("#ooMg").value||null});
+    save();render();
+  };
+  if(q("#bSave"))q("#bSave").onclick=function(){
+    var w=parseFloat(q("#bW").value),wa=parseFloat(q("#bWaist").value);
+    if(!w&&!wa)return;
+    var d=today(),ex=S.body.find(function(b){return b.date===d});
+    if(ex){if(w)ex.w=w;if(wa)ex.waist=wa}
+    else S.body.push({date:d,w:w||null,waist:wa||null});
+    save();render();
+  };
+  if(q("#calPrev"))q("#calPrev").onclick=function(){
+    var b=pd((S.calMonth||today().slice(0,7))+"-01");b.setMonth(b.getMonth()-1);
+    S.calMonth=iso(b).slice(0,7);save();render();
+  };
+  if(q("#calNext"))q("#calNext").onclick=function(){
+    var b=pd((S.calMonth||today().slice(0,7))+"-01");b.setMonth(b.getMonth()+1);
+    S.calMonth=iso(b).slice(0,7);save();render();
+  };
+  if(q("#ncMode"))q("#ncMode").onchange=function(){
+    var liq=q("#ncMode").value==="liquid";
+    q("#ncPow").style.display=liq?"none":"block";
+    q("#ncLiq").style.display=liq?"block":"none";
+  };
+  if(q("#ncAdd"))q("#ncAdd").onclick=function(){
+    var n=q("#ncName").value.trim();if(!n)return;
+    var mode=q("#ncMode").value;
+    var c={id:uid(),name:n,mode:mode,doseMg:+q("#ncDose").value||0,freq:q("#ncFreq").value,days:q("#ncFreq").value==="2xw"?[1,4]:[],start:today(),route:"subq"};
+    if(mode==="liquid"){c.mgPerMl=+q("#ncConc").value||0;c.vialMl=+q("#ncVml").value||1;c.remainingMl=c.vialMl;if(!c.mgPerMl)c.needConc=true}
+    else{c.vialMg=+q("#ncMg").value||0;c.bacMl=+q("#ncBac").value||1;c.remainingMl=c.bacMl}
+    S.compounds.push(c);save();render();
+  };
+  if(q("#stAdd"))q("#stAdd").onclick=function(){
+    var n=q("#stN").value.trim();if(!n)return;
+    S.storage.push({n:n,qty:+q("#stQ").value||null,unit:q("#stU").value||""});
+    save();render();
+  };
+  if(q("#mdAdd"))q("#mdAdd").onclick=function(){
+    var n=q("#mdN").value.trim();if(!n)return;
+    S.meds.push({n:n,dose:q("#mdD").value,times:q("#mdT").value.split(",").map(function(x){return x.trim()}).filter(Boolean)});
+    save();render();
+  };
+  if(q("#syPush"))q("#syPush").onclick=async function(){
+    var t=q("#syT").value.trim(),g=q("#syG").value.trim();
+    localStorage.setItem(SKEY,JSON.stringify({token:t,gistId:g,last:new Date().toLocaleString()}));
+    if(!t||!g)return alert("Token and gist ID required");
+    var r=await fetch("https://api.github.com/gists/"+g,{method:"PATCH",headers:{Authorization:"Bearer "+t,"Content-Type":"application/json"},body:JSON.stringify({files:{"stack.json":{content:JSON.stringify(S)}}})});
+    alert(r.ok?"Pushed.":"Push failed: "+r.status);render();
+  };
+  if(q("#syPull"))q("#syPull").onclick=async function(){
+    var t=q("#syT").value.trim(),g=q("#syG").value.trim();
+    localStorage.setItem(SKEY,JSON.stringify({token:t,gistId:g,last:new Date().toLocaleString()}));
+    if(!t||!g)return alert("Token and gist ID required");
+    var r=await fetch("https://api.github.com/gists/"+g,{headers:{Authorization:"Bearer "+t}});
+    if(!r.ok)return alert("Pull failed: "+r.status);
+    var j=await r.json(),f=j.files["stack.json"];
+    if(!f)return alert("No stack.json in gist");
+    S=JSON.parse(f.content);norm();save();alert("Pulled.");render();
+  };
+  if(q("#syNew"))q("#syNew").onclick=async function(){
+    var t=q("#syT").value.trim();if(!t)return alert("Token required");
+    var r=await fetch("https://api.github.com/gists",{method:"POST",headers:{Authorization:"Bearer "+t,"Content-Type":"application/json"},body:JSON.stringify({description:"Stack backup",public:false,files:{"stack.json":{content:JSON.stringify(S)}}})});
+    if(!r.ok)return alert("Failed: "+r.status);
+    var j=await r.json();
+    localStorage.setItem(SKEY,JSON.stringify({token:t,gistId:j.id,last:new Date().toLocaleString()}));
+    alert("Gist created.");render();
+  };
+  if(q("#syForget"))q("#syForget").onclick=function(){localStorage.removeItem(SKEY);render()};
+  if(q("#tForce"))q("#tForce").onclick=async function(){
+    if("caches" in window){var ks=await caches.keys();await Promise.all(ks.map(function(k){return caches.delete(k)}))}
+    var rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(function(r){return r.unregister()}));
+    location.reload(true);
+  };
+  if(q("#tExport"))q("#tExport").onclick=function(){
+    var b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+    var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="stack-"+today()+".json";a.click();
+  };
+  if(q("#tImport"))q("#tImport").onclick=function(){
+    var i=document.createElement("input");i.type="file";i.accept=".json";
+    i.onchange=function(){var f=i.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{S=JSON.parse(r.result);norm();save();render()}catch(e){alert("Bad file")}};r.readAsText(f)};
+    i.click();
+  };
 }
-function vToday(){
-const ds=t0();const items=dayItems(ds,true);const done=S.done[ds]||{};const skipped=S.skip[ds]||{};
-const live_=items.filter(i=>!skipped[i.id]);
-const n=live_.filter(i=>done[i.id]).length;
-const iso=[{time:'10:00',name:'Doxycycline window',note:'2h clear of dairy, calcium, iron, zinc, antacids. Upright 30 min.',k:'iso'}];
-const merged=[...items,...iso].sort((a,b)=>String(a.time).localeCompare(String(b.time)));
-const offDay=S.compounds.filter(c=>live(c)&&c.freq!=='prn'&&!occurs(c,ds));
-return `<div class="prog"><span class="meta">${n} / ${live_.length}${Object.keys(skipped).length?' · '+Object.keys(skipped).length+' skipped':''}</span><div class="pbar"><i style="width:${live_.length?n/live_.length*100:0}%"></i></div></div>
-<div class="card"><h3>${DAYS[new Date().getDay()]} ${ds}</h3><div class="tl">${merged.map(x=>{
-if(x.k==='iso')return `<div class="ev iso"><div class="tm">${x.time}</div><div class="nm">${x.name}</div><div class="meta">${x.note}</div></div>`;
-const d=done[x.id];const sk=skipped[x.id];const inj=x.route&&x.route!=='oral';
-return `<div class="ev ${x.kind}"><div class="tm">${x.time}${x.time2?' + '+x.time2:''}</div>
-<div class="item ${d?'done':''} ${sk?'skipped':''}" style="border:none;padding:2px 0"><button class="chk ${d?'on':''} ${sk?'sk':''}" data-ck="${x.k}:${x.id}">✓</button>
-<div class="b" onclick="void 0"><div class="nm">${esc(x.name)}${sk?'<span class="badge">skipped</span>':''}</div>
-<div class="meta">${inj?doseLbl(x):esc(x.dose||'')}${inj?' · '+rN(x.route):''}${x.site?' · '+x.site:''}</div>
-${x.note?`<div class="meta">${esc(x.note)}</div>`:''}</div>
-<button class="pz" data-skip="${x.k}:${x.id}" title="skip">–</button></div></div>`;}).join('')}</div></div>
-${offDay.length?`<div class="card"><h3>Not scheduled today</h3>${offDay.map(c=>{const d=done[c.id];
-return `<div class="item ${d?'done':''}"><button class="chk ${d?'on':''}" data-offlog="${c.id}">✓</button>
-<div class="b"><div class="nm">${esc(c.name)}<span class="badge">${fN(c.freq)}${dayStr(c)}</span></div>
-<div class="meta">${c.route&&c.route!=='oral'?doseLbl(c):esc(c.dose||'')}${c.site?' · '+c.site:''}</div></div></div>`;}).join('')}
-<div class="note">Logging here counts the dose without changing the schedule.</div></div>`:''}
-${logCard()}${oneoffCard()}`;
+
+function editCompound(id){
+  var c=S.compounds.find(function(x){return x.id===id});if(!c)return;
+  var liq=c.mode==="liquid";
+  modal('<h3>'+esc(c.name)+'</h3>'+
+    '<label>Type</label><select id="eMode"><option value="powder"'+(liq?"":" selected")+'>powder vial</option><option value="liquid"'+(liq?" selected":"")+'>pre-mixed liquid</option></select>'+
+    '<div id="ePow" style="display:'+(liq?"none":"block")+'"><div class="grid2"><div><label>Vial mg</label><input id="eV" type="number" step="0.1" value="'+(c.vialMg||"")+'"></div><div><label>BAC mL</label><input id="eB" type="number" step="0.1" value="'+(c.bacMl||"")+'"></div></div></div>'+
+    '<div id="eLiq" style="display:'+(liq?"block":"none")+'"><div class="grid2"><div><label>mg per mL</label><input id="eC" type="number" step="0.1" value="'+(c.mgPerMl||"")+'"></div><div><label>Vial mL</label><input id="eVm" type="number" step="0.1" value="'+(c.vialMl||"")+'"></div></div></div>'+
+    '<label>Dose mg</label><input id="eD" type="number" step="0.01" value="'+c.doseMg+'">'+
+    '<label>Frequency</label><select id="eF">'+["daily","eod","2xw","weekly","prn","off"].map(function(f){return '<option value="'+f+'"'+(c.freq===f?" selected":"")+'>'+f+'</option>'}).join("")+'</select>'+
+    '<label>Start date</label><input id="eS" type="date" value="'+esc(c.start)+'">'+
+    '<label>Site</label><input id="eP" value="'+esc(c.site||"")+'">'+
+    '<div style="height:12px"></div><button class="btn" id="eSave">Save</button><div style="height:8px"></div><button class="btn alt" id="ePause">'+(c.paused?"Resume":"Pause")+'</button><div style="height:8px"></div><button class="btn bad" id="eDel">Delete</button>');
+  document.getElementById("eMode").onchange=function(){
+    var l=this.value==="liquid";
+    document.getElementById("ePow").style.display=l?"none":"block";
+    document.getElementById("eLiq").style.display=l?"block":"none";
+  };
+  document.getElementById("eSave").onclick=function(){
+    c.mode=document.getElementById("eMode").value;
+    c.doseMg=+document.getElementById("eD").value||0;
+    c.freq=document.getElementById("eF").value;c.start=document.getElementById("eS").value;c.site=document.getElementById("eP").value;
+    if(c.mode==="liquid"){
+      c.mgPerMl=+document.getElementById("eC").value||0;
+      var vm=+document.getElementById("eVm").value||0;
+      if(vm&&vm!==c.vialMl){c.vialMl=vm;c.remainingMl=vm}
+      if(!c.vialMl)c.vialMl=1;
+      if(c.mgPerMl)c.needConc=false;
+    }else{
+      c.vialMg=+document.getElementById("eV").value||0;c.bacMl=+document.getElementById("eB").value||1;
+    }
+    save();closeModal();render();
+  };
+  document.getElementById("ePause").onclick=function(){c.paused=!c.paused;save();closeModal();render()};
+  document.getElementById("eDel").onclick=function(){S.compounds=S.compounds.filter(function(x){return x.id!==id});save();closeModal();render()};
 }
-function chart(pts,lo,hi){
-if(!pts.length)return '';
-const W=320,H=120,P=24;
-const vs=pts.map(p=>p.v);const mn=Math.min(...vs,lo),mx=Math.max(...vs,hi);
-const sy=v=>H-P-((v-mn)/(mx-mn||1))*(H-2*P);
-const sx=i=>P+(i/(Math.max(pts.length-1,1)))*(W-2*P);
-const line=pts.map((p,i)=>`${sx(i)},${sy(p.v)}`).join(' ');
-return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:130px">
-<rect x="0" y="${sy(hi)}" width="${W}" height="${Math.max(sy(lo)-sy(hi),1)}" fill="#35c46a" opacity="0.09"/>
-<polyline points="${line}" fill="none" stroke="#4c8dff" stroke-width="2" stroke-linejoin="round"/>
-${pts.map((p,i)=>`<circle cx="${sx(i)}" cy="${sy(p.v)}" r="2.6" fill="#4c8dff"/>`).join('')}
-</svg>`;
-}
-function vBody(){
-const w=[...S.weight].sort((a,b)=>a.d.localeCompare(b.d));
-const withW=w.filter(x=>x.w>0),withWaist=w.filter(x=>x.waist>0);
-const latest=w[w.length-1],first=w[0];
-const delta=latest&&first&&latest.w&&first.w?(latest.w-first.w):0;
-const wk=w.filter(x=>x.d>=new Date(Date.now()-7*864e5).toISOString().slice(0,10)&&x.w>0);
-const avg=wk.length?(wk.reduce((a,x)=>a+x.w,0)/wk.length):0;
-return `<div class="card"><h3>Log</h3>
-<div class="row g3"><div><label>Date</label><input id="bD" type="date" value="${t0()}"></div><div><label>Weight (lb)</label><input id="bW" type="number" step="0.1" placeholder="185"></div><div><label>Waist (in)</label><input id="bWa" type="number" step="0.25" placeholder="37.5"></div></div>
-<button class="btn" id="bAdd">Save</button></div>
-<div class="card"><h3>Weight</h3><div class="stat">
-<div class="s"><div class="sv">${latest&&latest.w?latest.w:'—'}</div><div class="sl">latest</div></div>
-<div class="s"><div class="sv ${delta<0?'ok':''}">${delta?delta.toFixed(1):'—'}</div><div class="sl">change</div></div>
-<div class="s"><div class="sv">${avg?avg.toFixed(1):'—'}</div><div class="sl">7-day avg</div></div></div>
-${withW.length>1?chart(withW.map(x=>({v:x.w})),150,190):'<div class="empty">Log two weights to chart.</div>'}
-<div class="note">Band is 150-190 lb. Target 150-155.</div></div>
-<div class="card"><h3>Waist</h3><div class="meta">Latest: <b>${latest&&latest.waist?latest.waist+' in':'—'}</b> · target under 30 in</div>
-${withWaist.length>1?chart(withWaist.map(x=>({v:x.waist})),28,40):'<div class="empty">Log two waist readings to chart.</div>'}</div>
-<div class="card"><h3>Photos</h3><div class="photos" id="phGrid"></div>
-<div class="fl"><label class="btn sm" style="margin:0">Add photo<input type="file" id="phIn" accept="image/*" style="display:none"></label></div></div>
-<div class="card"><h3>History</h3><table><tr><th>Date</th><th>Weight</th><th>Waist</th><th></th></tr>
-${[...w].reverse().slice(0,20).map(x=>`<tr><td>${x.d}</td><td>${x.w||'—'}</td><td>${x.waist||'—'}</td><td><button class="x" data-del="weight:${x.id}">×</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Nothing logged.</td></tr>'}</table></div>`;
-}
-document.addEventListener('click',e=>{if(e.target.id!=='bAdd')return;
-const g=id=>document.getElementById(id);const w=+g('bW').value,wa=+g('bWa').value;
-if(!w&&!wa){alert('Enter a weight or waist');return;}
-S.weight.push({id:uid(),d:g('bD').value,w:w||0,waist:wa||0});save();render();});
-let PH=[];
-function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('stack_photos',1);
-r.onupgradeneeded=()=>r.result.createObjectStore('p',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
-async function loadPhotos(){
-try{const db=await idb();const tx=db.transaction('p','readonly');
-PH=await new Promise(r=>{const q=tx.objectStore('p').getAll();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([]);});
-PH.sort((a,b)=>b.d.localeCompare(a.d));
-const g=document.getElementById('phGrid');
-if(g)g.innerHTML=PH.map(p=>`<div class="ph"><img src="${p.src}" data-ph="${p.id}"><span class="dt">${p.d}</span><button class="dl" data-pd="${p.id}">×</button></div>`).join('')||'<div class="empty">No photos yet.</div>';
-}catch(e){}}
-async function addPhoto(file){
-const img=new Image();const url=URL.createObjectURL(file);
-await new Promise(r=>{img.onload=r;img.src=url;});
-const max=760;let w=img.width,h=img.height;
-if(w>h&&w>max){h=h*max/w;w=max;}else if(h>=w&&h>max){w=w*max/h;h=max;}
-const c=document.createElement('canvas');c.width=w;c.height=h;
-c.getContext('2d').drawImage(img,0,0,w,h);
-const src=c.toDataURL('image/jpeg',0.62);
-const db=await idb();const tx=db.transaction('p','readwrite');
-tx.objectStore('p').put({id:uid(),d:t0(),src:src});
-URL.revokeObjectURL(url);setTimeout(loadPhotos,150);}
-document.addEventListener('change',e=>{if(e.target.id!=='phIn')return;const f=e.target.files[0];if(f)addPhoto(f);});
-async function delPhoto(id){const db=await idb();const tx=db.transaction('p','readwrite');tx.objectStore('p').delete(id);setTimeout(loadPhotos,150);}
-function bigPhoto(id){const p=PH.find(x=>x.id===id);if(!p)return;
-const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:#000;z-index:99;display:flex;align-items:center;justify-content:center';
-d.innerHTML=`<img src="${p.src}" style="max-width:100%;max-height:100%;object-fit:contain">`;
-d.onclick=()=>d.remove();document.body.appendChild(d);}
-function vLabs(){
-const sel=S.selLab||'hct';
-const m=MARKS.find(x=>x[0]===sel);
-const rows=S.labs.filter(l=>l.k===sel).sort((a,b)=>a.d.localeCompare(b.d));
-const last=rows[rows.length-1];
-const v=last?last.v:null;
-const st=v===null?'':(v<m[3]?'lo':v>m[4]?'hi':'in');
-return `<div class="card"><h3>Marker</h3><select id="lbSel">${MARKS.map(x=>`<option value="${x[0]}" ${x[0]===sel?'selected':''}>${x[1]}</option>`).join('')}</select>
-<div style="margin-top:10px">${v!==null?`<span class="v ${st}">${v} ${m[2]}</span> <span class="meta">on ${last.d}</span>`:'<span class="meta">No readings yet.</span>'}</div>
-<div class="note">Reference ${m[3]}–${m[4]} ${m[2]}${m[5]?' · '+m[5]:''}</div>
-${rows.length>1?chart(rows.map(x=>({v:x.v})),m[3],m[4]):''}</div>
-<div class="card"><h3>Log reading</h3><div class="row g2"><div><label>Date</label><input id="lbD" type="date" value="${t0()}"></div><div><label>Value (${m[2]})</label><input id="lbV" type="number" step="0.01"></div></div>
-<button class="btn" id="lbAdd">Save</button></div>
-<div class="card"><h3>All markers</h3>${MARKS.map(x=>{
-const r=S.labs.filter(l=>l.k===x[0]).sort((a,b)=>a.d.localeCompare(b.d));
-const lv=r[r.length-1];if(!lv)return '';
-const c=lv.v<x[3]?'lo':lv.v>x[4]?'hi':'in';
-return `<div class="mk"><div class="b" data-lab="${x[0]}"><div class="nm" style="font-size:13.5px">${x[1]}</div><div class="meta">${x[3]}–${x[4]} ${x[2]}</div></div><div class="v ${c}">${lv.v}</div></div>`;}).join('')||'<div class="empty">No readings.</div>'}</div>
-<div class="card"><h3>Recent</h3><table><tr><th>Date</th><th>Marker</th><th>Value</th><th></th></tr>
-${[...S.labs].sort((a,b)=>b.d.localeCompare(a.d)).slice(0,15).map(l=>{const mm=MARKS.find(x=>x[0]===l.k);
-return `<tr><td>${l.d}</td><td>${mm?mm[1]:l.k}</td><td>${l.v} ${mm?mm[2]:''}</td><td><button class="x" data-del="labs:${l.id}">×</button></td></tr>`;}).join('')||'<tr><td colspan="4" class="empty">Nothing logged.</td></tr>'}</table></div>`;
-}
-document.addEventListener('change',e=>{if(e.target.id!=='lbSel')return;S.selLab=e.target.value;save();render();});
-document.addEventListener('click',e=>{const l=e.target.closest('[data-lab]');if(l){S.selLab=l.dataset.lab;save();render();return;}
-if(e.target.id!=='lbAdd')return;
-const d=document.getElementById('lbD').value;const v=+document.getElementById('lbV').value;
-if(!v&&v!==0){alert('Enter a value');return;}
-S.labs.push({id:uid(),k:S.selLab||'hct',d:d,v:v});save();render();});
-function siteAge(s){const d=S.sites[s];if(!d)return 99;return Math.floor((new Date(t0())-new Date(d))/864e5);}
-function siteCls(s){const a=siteAge(s);if(a<=1)return 'fresh';if(a<=3)return 'mid';return 'ready';}
-function fig(back){
-const g=(n,x,y)=>`<circle class="site ${siteCls(n)}" data-site="${n}" cx="${x}" cy="${y}" r="9"/>`;
-return `<svg width="120" height="230" viewBox="0 0 120 230">
-<circle cx="60" cy="20" r="13" fill="#1d1d20" stroke="#3a3a40" stroke-width="2"/>
-<rect x="52" y="33" width="16" height="9" fill="#1d1d20" stroke="#3a3a40" stroke-width="2"/>
-<rect x="34" y="42" width="52" height="86" rx="10" fill="#1d1d20" stroke="#3a3a40" stroke-width="2"/>
-<rect x="20" y="46" width="12" height="66" rx="6" fill="#1d1d20" stroke="#3a3a40" stroke-width="2"/>
-<rect x="88" y="46" width="12" height="66" rx="6" fill="#1d1d20" stroke="#3a3a40" stroke-width="2"/>
-<rect x="40" y="132" width="16" height="88" rx="8" fill="#1d1d20" stroke="#3a3a40" stroke-width="2"/>
-<rect x="64" y="132" width="16" height="88" rx="8" fill="#1d1d20" stroke="#3a3a40" stroke-width="2"/>
-${back?g('Glute L',48,118)+g('Glute R',72,118):g('Delt L',26,52)+g('Delt R',94,52)+g('Abdomen L',48,88)+g('Abdomen R',72,88)+g('Thigh L',48,168)+g('Thigh R',72,168)}
-</svg>`;}
-function vRot(){
-const ready=SITES.filter(s=>siteAge(s)>3).sort((a,b)=>siteAge(b)-siteAge(a));
-return `<div class="card"><h3>Next site</h3><div class="meta" style="font-size:14px;color:var(--fg)"><b>${ready[0]||'any — all used recently'}</b></div>
-<div class="note">Tap a dot to log it used today.</div></div>
-<div class="card"><h3>Body map</h3><div class="bodyfig">${fig(false)}${fig(true)}</div>
-<div class="legend"><span class="lg"><span class="lgc" style="background:#ff5c5c"></span>1 day</span><span class="lg"><span class="lgc" style="background:#f5a524"></span>2-3 days</span><span class="lg"><span class="lgc" style="background:#35c46a"></span>ready</span></div></div>
-<div class="card"><h3>Per compound</h3><table><tr><th>Compound</th><th>Assigned</th><th>Days</th></tr>
-${S.compounds.filter(c=>live(c)&&(c.route==='subq'||c.route==='im')).map(c=>`<tr><td>${esc(c.name)}</td><td class="meta">${c.site||'—'}</td><td class="${siteAge(c.site)<=1?'warn':'ok'}">${c.site&&S.sites[c.site]?siteAge(c.site):'never'}</td></tr>`).join('')}</table>
-<div class="note">Oils into delts or glutes only.</div></div>`;
-}
-function vMore(){return `<div class="card"><h3>Everything else</h3><div class="more">
-<button data-tab="cal">Calendar</button><button data-tab="stack">Stack</button>
-<button data-tab="supps">Supps</button><button data-tab="inv">Inventory</button>
-<button data-tab="flags">Flags</button><button data-tab="tools">Tools</button>
-<button data-tab="plan">Plan</button><button data-tab="proto">Protocols</button></div>
-<div class="note">Build ${BUILD}</div></div>`;}
-function vCal(){
-const base=new Date();base.setDate(1);base.setMonth(base.getMonth()+S.calMonth);
-const y=base.getFullYear(),m=base.getMonth();
-const first=new Date(y,m,1).getDay();const days=new Date(y,m+1,0).getDate();
-let cells='';
-for(let i=0;i<first;i++)cells+='<div class="cell blank"></div>';
-for(let d=1;d<=days;d++){
-const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-const it=dayItems(ds,false);
-const oo=S.oneoffs.filter(o=>o.d===ds);
-const rare=it.filter(x=>x.freq==='weekly'||x.freq==='2xw');
-const dots=it.slice(0,4).map(x=>`<span class="dot ${x.kind==='rx'?'oral':x.cls==='aas'?'oil':''} ${rare.includes(x)?'rare':''}"></span>`).join('')+(oo.length?'<span class="dot one"></span>':'');
-cells+=`<button class="cell ${ds===t0()?'today':''} ${S.selDay===ds?'sel':''}" data-cell="${ds}"><span class="dn">${d}</span><span class="dots">${dots}</span></button>`;
-}
-const ooDay=S.selDay?S.oneoffs.filter(o=>o.d===S.selDay):[];
-const det=S.selDay?`<div class="card"><h3>${S.selDay}</h3>${dayItems(S.selDay,false).map(x=>`<div class="item"><div class="b"><div class="nm">${esc(x.name)}</div><div class="meta">${x.time}${x.route&&x.route!=='oral'?' · '+un(x,x.dose).toFixed(1)+' units':''}${x.site?' · '+x.site:''}</div></div></div>`).join('')}
-${ooDay.map(o=>`<div class="item"><div class="b"><div class="nm">${esc(o.name)}<span class="badge">one-off</span></div>${o.note?`<div class="meta">${esc(o.note)}</div>`:''}</div></div>`).join('')}
-${!dayItems(S.selDay,false).length&&!ooDay.length?'<div class="empty">Nothing.</div>':''}</div>`:'';
-return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-<button class="btn sec sm" data-mon="-1">‹</button><b>${MONTHS[m]} ${y}</b><button class="btn sec sm" data-mon="1">›</button></div>
-<div class="cal">${DAYS.map(d=>`<div class="cd">${d[0]}</div>`).join('')}${cells}</div>
-<div class="legend" style="margin-top:12px"><span class="lg"><span class="lgc" style="background:var(--acc)"></span>injection</span><span class="lg"><span class="lgc" style="background:var(--ok)"></span>oral</span><span class="lg"><span class="lgc" style="background:var(--oil)"></span>oil</span><span class="lg"><span class="lgc" style="background:#a855f7"></span>one-off</span></div></div>${det}`;
-}
-function vStack(){
-const row=c=>{const oral=!c.route||c.route==='oral';const u=un(c,c.dose);
-return `<div class="item ${c.paused?'off':''}"><button class="pz ${c.paused?'on':''}" data-pause="${c.id}">${c.paused?'▶':'⏸'}</button>
-<div class="b" data-edit="compounds:${c.id}"><div class="nm">${esc(c.name)}<span class="badge">${cN(c.cls)}</span>${oral?'':`<span class="badge">${rN(c.route)}</span>`}${c.paused?'<span class="badge">paused</span>':''}</div>
-<div class="meta">${oral?esc(c.dose||''):`<span class="u">${u.toFixed(1)} units</span> (${mgLbl(c.dose)})`} · ${fN(c.freq)}${dayStr(c)} ${c.time}${c.site?' · '+c.site:''}</div>
-${c.note?`<div class="meta">${esc(c.note)}</div>`:''}</div><button class="x" data-del="compounds:${c.id}">×</button></div>`;};
-return `<div class="card"><h3>Active (${S.compounds.filter(live).length})</h3>${S.compounds.filter(live).map(row).join('')||'<div class="empty">None.</div>'}</div>
-<div class="card"><h3>Paused (${S.compounds.filter(c=>c.paused).length})</h3>${S.compounds.filter(c=>c.paused).map(row).join('')||'<div class="empty">None paused.</div>'}
-<div class="note">Tap a name to edit days, start date or dose.</div></div>
-<div class="card"><h3>Medications</h3>${S.meds.map(x=>`<div class="item"><div class="b" data-edit="meds:${x.id}"><div class="nm">${esc(x.name)}<span class="badge">${cN(x.cls)}</span></div><div class="meta">${esc(x.dose)} · ${fN(x.freq)} ${x.time}</div></div><button class="x" data-del="meds:${x.id}">×</button></div>`).join('')}</div>`;
-}
-function vSupps(){
-const row=s=>`<div class="item ${s.on?'':'off'}"><button class="chk ${s.on?'on':''}" data-tog="${s.id}">✓</button>
-<div class="b" data-edit="supps:${s.id}"><div class="nm">${esc(s.name)}</div><div class="meta">${esc(s.dose||'')}${s.on?' · '+s.time:''}</div></div>
-<button class="x" data-del="supps:${s.id}">×</button></div>`;
-return `<div class="card"><h3>On (${S.supps.filter(s=>s.on).length})</h3>${S.supps.filter(s=>s.on).map(row).join('')||'<div class="empty">None.</div>'}</div>
-<div class="card"><h3>Off (${S.supps.filter(s=>!s.on).length})</h3>${S.supps.filter(s=>!s.on).map(row).join('')||'<div class="empty">None.</div>'}</div>
-<div class="card"><h3>Add</h3><div class="row g3"><div><label>Name</label><input id="pN"></div><div><label>Dose</label><input id="pD"></div><div><label>Time</label><input id="pT" type="time" value="12:00"></div></div><button class="btn" id="pAdd">Add</button></div>`;
-}
-document.addEventListener('click',e=>{if(e.target.id!=='pAdd')return;const g=id=>document.getElementById(id);
-if(!g('pN').value){alert('Name required');return;}
-S.supps.push({id:uid(),name:g('pN').value,cls:'supp',dose:g('pD').value,freq:'daily',time:g('pT').value,note:'',start:t0(),on:true});save();render();});
-function vInv(){return `<div class="card"><h3>Inventory</h3><table><tr><th>Item</th><th>Qty</th><th>Note</th><th></th></tr>${S.storage.map(s=>`<tr><td data-edit="storage:${s.id}">${esc(s.name)}<div class="meta">${cN(s.cls)}</div></td><td>${esc(s.qty)}</td><td class="meta">${esc(s.note||'')}</td><td><button class="x" data-del="storage:${s.id}">×</button></td></tr>`).join('')}</table></div>`;}
-const RULES=[['ssri','pde5','info','Fluoxetine inhibits CYP2D6 - PDE5 runs hotter.'],['bp','pde5','warn','Propranolol + PDE5 = additive hypotension.'],['bp','pde5','info','Propranolol before sex can impair erection.'],['aas','pde5','info','Primo and mast lower E2. Crashed E2 wrecks erections.'],['aas','pde5','info','Tren and NPP raise prolactin - direct cause of ED.'],['aas','pde5','info','High hematocrit degrades erection quality. Donate above 52%.'],['glp1','glp1','info','Never run tirzepatide and retatrutide together.'],['glp1','abx','warn','GLP-1 shifts doxy absorption. 2h from minerals.'],['abx','supp','warn','Minerals and dairy bind doxycycline.'],['aas','supp','info','Creatine raises serum creatinine.'],['ghs','glp1','ok','Tesamorelin raises IGF-1; the GLP-1 partly offsets it.'],['nad','stim','info','NAD+ flushes and bumps pulse. Pin early.'],['skin','supp','ok','GHK-Cu is copper - zinc at night balances the load.'],['supp','glp1','ok','Electrolytes and psyllium are not optional on a GLP-1.'],['heal','heal','ok','BPC, TB-500, KPV and GHK-Cu share a syringe.'],['aas','aas','info','Multiple oils: watch estradiol and prolactin.']];
-function flags(){const items=[...S.compounds.filter(live),...S.meds,...S.supps.filter(s=>s.on)];const h=[];
-for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++){const a=items[i],b=items[j];
-RULES.forEach(([x,y,l,t])=>{if((a.cls===x&&b.cls===y)||(a.cls===y&&b.cls===x))h.push([l,t,`${a.name} + ${b.name}`]);});}
-const se={};return h.filter(x=>{const k=x[1]+x[2];if(se[k])return false;se[k]=1;return true;});}
-function vFlags(){const f=flags();return `<div class="card"><h3>Flags (${f.length})</h3>${f.map(([l,t,w])=>`<div class="item"><div class="b"><div class="nm ${l==='warn'?'warn':''}">${esc(t)}</div><div class="meta">${esc(w)}</div></div></div>`).join('')}</div>`;}
-function vPlan(){return `<div class="card"><h3>Reality check</h3><div class="meta">The GLP-1 moves the scale. Protein and lifting decide whether you lose fat or muscle.</div></div>
-<div class="card"><h3>GLP-1 switch</h3><div class="meta"><b>Bridge:</b> tirz 5mg if you have doses left.</div><div class="meta"><b>Reta:</b> 2mg x2wk, then 4mg. 6mg if stalled.</div><div class="meta"><b>Never both.</b></div></div>
-<div class="card"><h3>Oil protocol</h3><div class="meta"><b>Now to 11/2:</b> Mon/Thu: test cyp 75mg + primo 100mg.</div><div class="meta"><b>From 11/2:</b> EOD: test 40 + primo 50 + mast 50.</div></div>
-<div class="card"><h3>Targets</h3><div class="meta">Protein 150-170g. 1700-1900 kcal. 1-2 lb/wk. Waist under 30 in. 3x full body.</div></div>`;}
-const PROTO=[['GHK-Cu 50 mg','3mL = 16.67mg/mL','1mg x15d then 2mg x15d','30 on / 30 off'],['ARA-290 12 mg','2.4mL = 5mg/mL','2mg x1wk then 4mg x28d','Cycle it'],['5-amino-1MQ 100 mg','4mL = 25mg/mL','2.5-5mg SubQ','Caps are pin-free'],['Glutathione 1200 mg','6mL = 200mg/mL','200mg 2-3x/wk IM','Stings SubQ'],['NAD+','assume 1200mg + 12mL','25mg 2x/wk, titrate','Verify label'],['KPV 30 mg','3mL = 10mg/mL','500mcg daily 5/2','Shares barrel with BPC'],['Retatrutide 60 mg','3mL = 20mg/mL','2mg x2wk then 4mg','Taper tirz out'],['Tesamorelin 10 mg','2mL = 5mg/mL','1mg = 20u nightly','Fasted'],['Thymosin a-1 10 mg','2mL = 5mg/mL','1.6mg = 32u 2x/wk','5mg vial needs 1mL'],['Cagrilintide 5 mg','2mL = 2.5mg/mL','0.25mg weekly','Test before Elora'],['Selank 5 mg','2mL = 2.5mg/mL','250mcg daily','2-4 week run'],['VIP 5.8 mg','2mL = 2.9mg/mL','50-100mcg daily','Watch BP']];
-function vProto(){return `<div class="card"><h3>Protocols</h3><table><tr><th>Item</th><th>Recon</th><th>Dose</th><th>Note</th></tr>${PROTO.map(p=>`<tr><td><b>${p[0]}</b></td><td class="meta">${p[1]}</td><td>${p[2]}</td><td class="meta">${p[3]}</td></tr>`).join('')}</table></div>`;}
-function icsDate(d,t){const a=d.split('-'),b=t.split(':');return `${a[0]}${a[1]}${a[2]}T${b[0]}${b[1]}00`;}
-function buildICS(){
-const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Stack//EN','CALSCALE:GREGORIAN'];
-const today=t0();
-S.compounds.filter(c=>live(c)&&c.freq!=='prn').forEach(c=>{
-let rr='';
-if(c.freq==='daily'||c.freq==='bid')rr='RRULE:FREQ=DAILY';
-else if(c.freq==='eod')rr='RRULE:FREQ=DAILY;INTERVAL=2';
-else if(c.freq==='weekly')rr='RRULE:FREQ=WEEKLY';
-else if(c.days&&c.days.length)rr='RRULE:FREQ=WEEKLY;BYDAY='+c.days.map(d=>['SU','MO','TU','WE','TH','FR','SA'][d]).join(',');
-const add=(t,suf)=>{L.push('BEGIN:VEVENT','UID:'+c.id+suf+'@stack','DTSTAMP:'+icsDate(today,'00:00'));
- L.push('DTSTART:'+icsDate(today,t));if(rr)L.push(rr);
- L.push('SUMMARY:'+c.name+' '+un(c,c.dose).toFixed(1)+' units');
- L.push('DESCRIPTION:'+rN(c.route)+(c.site?' - '+c.site:''));
- L.push('BEGIN:VALARM','TRIGGER:0','ACTION:DISPLAY','DESCRIPTION:'+c.name,'END:VALARM','END:VEVENT');};
-add(c.time,'');if(c.freq==='bid'&&c.time2)add(c.time2,'b');});
-L.push('END:VCALENDAR');return L.join('\r\n');}
-const GH=()=>({'Authorization':'token '+SY.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'});
-async function pushGist(silent){
-if(!SY.token){if(!silent)alert('Add a token first');return;}
-try{
-const content=JSON.stringify(S,null,2);
-let r;
-if(!SY.gist){
-r=await fetch('https://api.github.com/gists',{method:'POST',headers:GH(),body:JSON.stringify({description:'Stack backup',public:false,files:{'stack.json':{content:content}}})});
-if(!r.ok)throw new Error('HTTP '+r.status);
-const j=await r.json();SY.gist=j.id;
-}else{
-r=await fetch('https://api.github.com/gists/'+SY.gist,{method:'PATCH',headers:GH(),body:JSON.stringify({files:{'stack.json':{content:content}}})});
-if(!r.ok)throw new Error('HTTP '+r.status);
-}
-SY.last=new Date().toISOString();saveSY();
-if(!silent){render();alert('Pushed.');}
-}catch(e){if(!silent)alert('Push failed: '+e.message);}
-}
-async function pullGist(){
-if(!SY.token||!SY.gist){alert('Need a token and a gist');return;}
-if(!confirm('Replace everything on this device with the gist copy?'))return;
-try{
-const r=await fetch('https://api.github.com/gists/'+SY.gist,{headers:GH()});
-if(!r.ok)throw new Error('HTTP '+r.status);
-const j=await r.json();
-const c=j.files['stack.json'].content;
-S=JSON.parse(c);save();render();alert('Pulled.');
-}catch(e){alert('Pull failed: '+e.message);}
-}
-async function forceUpdate(){
-if(!confirm('Clear the cache and reload?'))return;
-try{if('serviceWorker' in navigator){const rs=await navigator.serviceWorker.getRegistrations();
-for(const r of rs)await r.unregister();}
-if(window.caches){const ks=await caches.keys();for(const k of ks)await caches.delete(k);}}catch(e){}
-location.reload();
-}
-function vTools(){
-const mask=SY.token?SY.token.slice(0,7)+'…'+SY.token.slice(-4):'';
-return `<div class="card"><h3>Build</h3><div class="meta">Build <b>${BUILD}</b></div>
-<div class="fl"><button class="btn sec sm" id="fu">Force refresh</button></div></div>
-<div class="card"><h3>Sync</h3>
-<div class="row"><div><label>Token ${mask?'· saved '+mask:''}</label><input id="syT" type="password" placeholder="ghp_..." value="${esc(SY.token)}"></div></div>
-<div class="row"><div><label>Gist ID</label><input id="syG" placeholder="blank = create a new one on first push" value="${esc(SY.gist)}"></div></div>
-<div class="row g2"><div><label>Auto-push</label><select id="syA"><option value="0" ${SY.auto?'':'selected'}>Off</option><option value="1" ${SY.auto?'selected':''}>On</option></select></div><div><label>Last push</label><input value="${SY.last?new Date(SY.last).toLocaleString():'never'}" readonly></div></div>
-<div class="fl"><button class="btn sm" id="sySave">Save</button><button class="btn sec sm" id="syPush">Push</button><button class="btn sec sm" id="syPull">Pull</button><button class="btn sec sm" id="syForget">Forget</button></div>
-<div class="note">Last write wins. Pull before pushing from another device.</div></div>
-<div class="card"><h3>Calculator</h3><div class="row g3"><div><label>Vial</label><input id="cM" type="number" value="1200"></div><div><label>BAC mL</label><input id="cB" type="number" value="12" step="0.1"></div><div><label>Dose</label><input id="cD" type="number" value="25" step="0.01"></div></div><button class="btn" id="cGo">Calculate</button><div id="cO"></div></div>
-<div class="card"><h3>Calendar export</h3><div class="fl"><button class="btn sm" id="ics">Export .ics</button></div></div>
-<div class="card"><h3>Pen fill sheet</h3><table><tr><th>Pen</th><th>Recon</th><th>Dial</th><th>Lasts</th></tr>
-<tr><td><b>1 — BPC+GHK</b></td><td>BPC 10mg + GHK 25mg in 3mL</td><td><b>12u</b> 2x/day</td><td>~11d</td></tr>
-<tr><td><b>2 — Tesa</b></td><td>10mg + 2mL = 5mg/mL</td><td><b>20u</b> nightly</td><td>~9d</td></tr>
-<tr><td><b>3 — KPV</b></td><td>30mg + 3mL = 10mg/mL</td><td><b>5u</b> daily</td><td>~59d</td></tr></table></div>
-<div class="card"><h3>Backup</h3><div class="fl"><button class="btn sec sm" id="exp">Export JSON</button><label class="btn sec sm" style="margin:0">Restore<input type="file" id="imp" accept=".json" style="display:none"></label></div></div>`;
-}
-document.addEventListener('click',e=>{
-if(e.target.id==='fu'){forceUpdate();return;}
-if(e.target.id==='sySave'){SY.token=document.getElementById('syT').value.trim();SY.gist=document.getElementById('syG').value.trim();SY.auto=document.getElementById('syA').value==='1';saveSY();render();return;}
-if(e.target.id==='syPush'){SY.token=document.getElementById('syT').value.trim();SY.gist=document.getElementById('syG').value.trim();SY.auto=document.getElementById('syA').value==='1';saveSY();pushGist();return;}
-if(e.target.id==='syPull'){SY.token=document.getElementById('syT').value.trim();SY.gist=document.getElementById('syG').value.trim();saveSY();pullGist();return;}
-if(e.target.id==='syForget'){SY.token='';SY.gist='';SY.auto=false;saveSY();render();return;}
-if(e.target.id==='ics'){const b=new Blob([buildICS()],{type:'text/calendar'});const a=document.createElement('a');
-a.href=URL.createObjectURL(b);a.download='stack.ics';a.click();return;}
-if(e.target.id==='cGo'){const g=id=>document.getElementById(id);
-const m=+g('cM').value,b=+g('cB').value,d=+g('cD').value;if(!m||!b||!d){g('cO').innerHTML='<div class="note warn">Fill all fields</div>';return;}
-const c=m/b,v=d/c;g('cO').innerHTML=`<div class="note"><b>${c.toFixed(2)} per mL</b><br>Draw <b>${(v*100).toFixed(1)} units</b> for ${d}</div>`;return;}
-if(e.target.id==='exp'){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');
-a.href=URL.createObjectURL(b);a.download='stack-backup-'+t0()+'.json';a.click();return;}
-});
-document.addEventListener('change',e=>{if(e.target.id!=='imp')return;const f=e.target.files[0];if(!f)return;
-const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();render();alert('Restored');}catch(x){alert('Bad file');}};r.readAsText(f);});
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+
 render();
 </script>
 </body>
