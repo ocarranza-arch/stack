@@ -30,6 +30,7 @@ button{font-family:inherit;cursor:pointer}
 .item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd);align-items:flex-start}
 .item:last-child{border-bottom:none}.item .b{flex:1;min-width:0}
 .item.done .b{opacity:.42}.item.done .nm{text-decoration:line-through}
+.item.skipped .b{opacity:.38}.item.skipped .nm{text-decoration:line-through}
 .item.off .b{opacity:.4}
 .nm{font-weight:600;font-size:14px}.meta{font-size:12px;color:var(--mut);margin-top:2px}
 .badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#232326;color:var(--mut);margin-left:5px}
@@ -48,6 +49,7 @@ td{padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}tr:last-
 .editb{background:#1d1d20;border:1px solid var(--acc);border-radius:12px;padding:14px;margin-bottom:12px}
 .chk{flex:0 0 30px;width:30px;height:30px;border-radius:9px;border:2px solid var(--bd);background:transparent;color:transparent;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0}
 .chk.on{background:var(--ok);border-color:var(--ok);color:#0b0b0c}
+.chk.sk{background:#3a3a42;border-color:#3a3a42;color:var(--mut)}
 .pz{flex:0 0 26px;width:26px;height:26px;border-radius:7px;border:1px solid var(--bd);background:transparent;color:var(--mut);font-size:12px;padding:0;display:flex;align-items:center;justify-content:center}
 .pz.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .dy{width:32px;height:32px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--mut);font-size:12px;padding:0;font-family:inherit}
@@ -89,6 +91,7 @@ td{padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}tr:last-
 .v.hi{color:var(--warn)}.v.lo{color:var(--oil)}.v.in{color:var(--ok)}
 .more{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .more button{background:#1d1d20;border:1px solid var(--bd);border-radius:10px;padding:16px 10px;color:var(--fg);font-size:13.5px;font-family:inherit;font-weight:500;text-align:left}
+.prompt{background:#1a2436;border:1px solid var(--acc);border-radius:10px;padding:12px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -99,7 +102,7 @@ td{padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}tr:last-
 </div>
 <div class="nav" id="nav"></div>
 <script>
-const BUILD='v10';
+const BUILD='v11';
 const KEY='stack_v1';
 const SYK='stack_sync';
 const CLS=[['glp1','GLP-1'],['amylin','Amylin'],['aas','Oil'],['oral','Oral AAS'],['hcg','hCG'],['ghs','GH secretagogue'],['nad','NAD+'],['heal','Healing peptide'],['skin','Skin peptide'],['mito','Metabolic'],['stim','Stimulant'],['ssri','SSRI'],['abx','Antibiotic'],['bp','BP med'],['pde5','PDE5'],['supp','Supplement'],['rx','Other Rx']];
@@ -131,7 +134,7 @@ function mk(n,cls,route,mg,bac,dose,f,t,t2,site,note){
 const days=f==='2xw'?[1,4]:f==='3xw'?[1,3,5]:[];
 return{id:uid(),name:n,cls:cls,route:route,mg:mg,bac:bac,dose:dose,freq:f,days:days,time:t,time2:t2||'',site:site,note:note||'',start:t0(),used:0,status:'active',paused:false};}
 function sp(n,dose,t,note,on){return{id:uid(),name:n,cls:'supp',dose:dose,freq:'daily',time:t,note:note||'',start:t0(),on:!!on};}
-function fresh(){return{tab:'today',editing:null,calMonth:0,selDay:null,logDate:null,done:{},sites:{},weight:[],labs:[],oneoffs:[],compounds:[
+function fresh(){return{tab:'today',editing:null,calMonth:0,selDay:null,logDate:null,done:{},skip:{},lastLog:null,sites:{},weight:[],labs:[],oneoffs:[],compounds:[
 mk('NAD+','nad','subq',1200,12,25,'2xw','07:30','','Abdomen L','Pin early, not at night.'),
 mk('BPC-157','heal','subq',10,2,0.25,'bid','08:00','20:00','Abdomen R','250-500mcg 2x/day.'),
 mk('GHK-Cu','skin','subq',50,3,1,'daily','20:00','','Thigh L','Combined cartridge with BPC. 30 on / 30 off.'),
@@ -199,13 +202,14 @@ sp('Taurine','2 g','08:00','',false)
 ]};}
 function load(){try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);
 ['compounds','meds','supps','storage','weight','labs','oneoffs'].forEach(k=>p[k]=p[k]||[]);
-p.done=p.done||{};p.sites=p.sites||{};
+p.done=p.done||{};p.skip=p.skip||{};p.sites=p.sites||{};
 if(p.calMonth===undefined)p.calMonth=0;
 p.supps.forEach(s=>{if(s.on===undefined)s.on=false;});
 p.compounds.forEach(c=>{if(c.paused===undefined)c.paused=false;
  if((c.freq==='2xw'||c.freq==='3xw'||c.freq==='custom')&&(!c.days||!c.days.length))c.days=c.freq==='2xw'?[1,4]:c.freq==='3xw'?[1,3,5]:[1];});
 const cut=new Date(Date.now()-60*864e5).toISOString().slice(0,10);
 Object.keys(p.done).forEach(d=>{if(d<cut)delete p.done[d];});
+Object.keys(p.skip).forEach(d=>{if(d<cut)delete p.skip[d];});
 return p;}}catch(e){}return fresh();}
 let pushT=null;
 function save(){localStorage.setItem(KEY,JSON.stringify(S));
@@ -246,9 +250,14 @@ if(document.getElementById('eM')){it.mg=+document.getElementById('eM').value;it.
 it.note=document.getElementById('eNo').value;S.editing=null;save();render();}return;}
 const d=e.target.closest('[data-del]');if(d){const[k,id]=d.dataset.del.split(':');S[k]=S[k].filter(x=>x.id!==id);save();render();return;}
 const ck=e.target.closest('[data-ck]');if(ck){const[k,id]=ck.dataset.ck.split(':');const ds=t0();
-S.done[ds]=S.done[ds]||{};
+S.done[ds]=S.done[ds]||{};S.skip[ds]=S.skip[ds]||{};
 if(S.done[ds][id]){delete S.done[ds][id];if(k==='compounds'){const c=S.compounds.find(x=>x.id===id);if(c&&c.used>0)c.used--;}}
-else{S.done[ds][id]=1;if(k==='compounds'){const c=S.compounds.find(x=>x.id===id);if(c)c.used=(c.used||0)+1;}}
+else{delete S.skip[ds][id];S.done[ds][id]=1;if(k==='compounds'){const c=S.compounds.find(x=>x.id===id);if(c)c.used=(c.used||0)+1;}}
+save();render();return;}
+const sk=e.target.closest('[data-skip]');if(sk){const[k,id]=sk.dataset.skip.split(':');const ds=t0();
+S.skip[ds]=S.skip[ds]||{};S.done[ds]=S.done[ds]||{};
+if(S.skip[ds][id]){delete S.skip[ds][id];}
+else{delete S.done[ds][id];S.skip[ds][id]=1;}
 save();render();return;}
 const ol=e.target.closest('[data-offlog]');if(ol){const ds=t0();S.done[ds]=S.done[ds]||{};
 if(S.done[ds][ol.dataset.offlog]){delete S.done[ds][ol.dataset.offlog];}
@@ -265,7 +274,7 @@ if(e.target.id==='lgGo'){const cid=document.getElementById('lgC').value;const dd
  if(!cid||!dd)return;
  S.done[dd]=S.done[dd]||{};S.done[dd][cid]=1;
  const c=S.compounds.find(x=>x.id===cid);if(c)c.used=(c.used||0)+1;
- save();render();return;}
+ S.lastLog={id:cid,d:dd};save();render();return;}
 const ul=e.target.closest('[data-unlog]');if(ul){const dd=S.logDate||t0();
  if(S.done[dd]&&S.done[dd][ul.dataset.unlog]){delete S.done[dd][ul.dataset.unlog];
  const c=S.compounds.find(x=>x.id===ul.dataset.unlog);if(c&&c.used>0)c.used--;save();render();}return;}
@@ -273,6 +282,8 @@ if(e.target.id==='ooGo'){const n=document.getElementById('ooN').value.trim();con
  if(!n||!dd){alert('Name and date required');return;}
  S.oneoffs.push({id:uid(),name:n,d:dd,note:document.getElementById('ooNo').value.trim()});
  save();render();return;}
+if(e.target.id==='skipToday'){const ll=S.lastLog;if(ll){S.skip[t0()]=S.skip[t0()]||{};S.skip[t0()][ll.id]=1;S.lastLog=null;save();render();}return;}
+if(e.target.id==='keepBoth'){S.lastLog=null;save();render();return;}
 });
 function occurs(x,d){const s=new Date(x.start+'T00:00:00'),dt=new Date(d+'T00:00:00');if(dt<s)return false;const df=Math.round((dt-s)/864e5);
 if(x.freq==='daily'||x.freq==='bid')return true;if(x.freq==='eod')return df%2===0;if(x.freq==='weekly')return df%7===0;
@@ -287,12 +298,18 @@ function logCard(){
 const dd=S.logDate||t0();
 const done=S.done[dd]||{};
 const logged=Object.keys(done).map(id=>S.compounds.find(c=>c.id===id)||S.meds.find(m=>m.id===id)||S.supps.find(s=>s.id===id)).filter(Boolean);
+const ll=S.lastLog;
+const llc=ll?S.compounds.find(c=>c.id===ll.id):null;
+const prompt=llc&&ll.d!==t0()&&occurs(llc,t0())&&!(S.skip[t0()]||{})[llc.id]
+?`<div class="prompt"><div class="meta" style="color:var(--fg)"><b>${esc(llc.name)}</b> is also scheduled today. It is still showing as due.</div>
+<div class="fl"><button class="btn sm" id="skipToday">Skip today's</button><button class="btn sec sm" id="keepBoth">Keep both</button></div></div>`:'';
 return `<div class="card"><h3>Log a dose on any date</h3>
 <div class="row g2"><div><label>Compound</label><select id="lgC">${S.compounds.filter(live).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
 <div><label>Date</label><input id="lgD" type="date" value="${dd}" max="${t0()}"></div></div>
 <button class="btn" id="lgGo">Log it</button>
+${prompt}
 ${logged.length?`<div class="note">Already logged on ${dd}:</div>${logged.map(x=>`<div class="item"><div class="b"><div class="nm" style="font-size:13px">${esc(x.name)}</div></div><button class="x" data-unlog="${x.id}">×</button></div>`).join('')}`:''}
-<div class="note">For catching up a dose you took earlier.</div></div>`;
+<div class="note">Backdating records history. It does not move the schedule.</div></div>`;
 }
 function oneoffCard(){
 const d=t0();
@@ -302,23 +319,25 @@ return `<div class="card"><h3>One-off injection</h3>
 <div class="row"><div><label>Note (optional)</label><input id="ooNo" placeholder="site or reason"></div></div>
 <button class="btn" id="ooGo">Log one-off</button>
 ${list.length?`<div class="note">Today:</div>${list.map(o=>`<div class="item"><div class="b"><div class="nm" style="font-size:13px">${esc(o.name)}<span class="badge">one-off</span></div>${o.note?`<div class="meta">${esc(o.note)}</div>`:''}</div><button class="x" data-del="oneoffs:${o.id}">×</button></div>`).join('')}`:''}
-<div class="note">For anything not in your stack. Never becomes recurring.</div></div>`;
+<div class="note">For anything not in your stack.</div></div>`;
 }
 function vToday(){
-const ds=t0();const items=dayItems(ds,true);const done=S.done[ds]||{};
-const n=items.filter(i=>done[i.id]).length;
+const ds=t0();const items=dayItems(ds,true);const done=S.done[ds]||{};const skipped=S.skip[ds]||{};
+const live_=items.filter(i=>!skipped[i.id]);
+const n=live_.filter(i=>done[i.id]).length;
 const iso=[{time:'10:00',name:'Doxycycline window',note:'2h clear of dairy, calcium, iron, zinc, antacids. Upright 30 min.',k:'iso'}];
 const merged=[...items,...iso].sort((a,b)=>String(a.time).localeCompare(String(b.time)));
 const offDay=S.compounds.filter(c=>live(c)&&c.freq!=='prn'&&!occurs(c,ds));
-return `<div class="prog"><span class="meta">${n} / ${items.length}</span><div class="pbar"><i style="width:${items.length?n/items.length*100:0}%"></i></div></div>
+return `<div class="prog"><span class="meta">${n} / ${live_.length}${Object.keys(skipped).length?' · '+Object.keys(skipped).length+' skipped':''}</span><div class="pbar"><i style="width:${live_.length?n/live_.length*100:0}%"></i></div></div>
 <div class="card"><h3>${DAYS[new Date().getDay()]} ${ds}</h3><div class="tl">${merged.map(x=>{
 if(x.k==='iso')return `<div class="ev iso"><div class="tm">${x.time}</div><div class="nm">${x.name}</div><div class="meta">${x.note}</div></div>`;
-const d=done[x.id];const inj=x.route&&x.route!=='oral';
+const d=done[x.id];const sk=skipped[x.id];const inj=x.route&&x.route!=='oral';
 return `<div class="ev ${x.kind}"><div class="tm">${x.time}${x.time2?' + '+x.time2:''}</div>
-<div class="item ${d?'done':''}" style="border:none;padding:2px 0"><button class="chk ${d?'on':''}" data-ck="${x.k}:${x.id}">✓</button>
-<div class="b"><div class="nm">${esc(x.name)}</div>
+<div class="item ${d?'done':''} ${sk?'skipped':''}" style="border:none;padding:2px 0"><button class="chk ${d?'on':''} ${sk?'sk':''}" data-ck="${x.k}:${x.id}">✓</button>
+<div class="b" onclick="void 0"><div class="nm">${esc(x.name)}${sk?'<span class="badge">skipped</span>':''}</div>
 <div class="meta">${inj?doseLbl(x):esc(x.dose||'')}${inj?' · '+rN(x.route):''}${x.site?' · '+x.site:''}</div>
-${x.note?`<div class="meta">${esc(x.note)}</div>`:''}</div></div></div>`;}).join('')}</div></div>
+${x.note?`<div class="meta">${esc(x.note)}</div>`:''}</div>
+<button class="pz" data-skip="${x.k}:${x.id}" title="skip">–</button></div></div>`;}).join('')}</div></div>
 ${offDay.length?`<div class="card"><h3>Not scheduled today</h3>${offDay.map(c=>{const d=done[c.id];
 return `<div class="item ${d?'done':''}"><button class="chk ${d?'on':''}" data-offlog="${c.id}">✓</button>
 <div class="b"><div class="nm">${esc(c.name)}<span class="badge">${fN(c.freq)}${dayStr(c)}</span></div>
@@ -564,7 +583,7 @@ location.reload();
 }
 function vTools(){
 const mask=SY.token?SY.token.slice(0,7)+'…'+SY.token.slice(-4):'';
-return `<div class="card"><h3>Build</h3><div class="meta">Build <b>${BUILD}</b> · if this is lower than deployed, you are on a cached copy.</div>
+return `<div class="card"><h3>Build</h3><div class="meta">Build <b>${BUILD}</b></div>
 <div class="fl"><button class="btn sec sm" id="fu">Force refresh</button></div></div>
 <div class="card"><h3>Sync</h3>
 <div class="row"><div><label>Token ${mask?'· saved '+mask:''}</label><input id="syT" type="password" placeholder="ghp_..." value="${esc(SY.token)}"></div></div>
