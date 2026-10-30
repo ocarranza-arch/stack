@@ -1,5 +1,5 @@
 "use strict";
-var BUILD="v18.2";
+var BUILD="v18.3";
 var KEYS=["stack_v1","venice_stack_v1","stack_v2","venice_stack_v2"];
 var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 function findKey(){for(var i=0;i<KEYS.length;i++){try{if(localStorage.getItem(KEYS[i]))return KEYS[i]}catch(e){}}return "stack_v1"}
@@ -117,30 +117,71 @@ function conc(c){
     return 0;
   }
 }
-function unitsFor(c,mg){if(c.units==="IU")return num(mg);var k=conc(c);if(!k)return 0;return Math.round((num(mg)/k*100)*100)/100}
-function mlFor(c,mg){var k=conc(c);if(!k)return 0;return num(mg)/k}
-function dosesLeft(c){var k=conc(c);if(!k||!c.doseMg)return null;return Math.floor((c.remainingMl||0)/mlFor(c,c.doseMg))}
+
+function unitsFor(c,mg){
+  if(c.units==="IU") return num(mg);
+  
+  // Handle mcg conversion
+  if(c.units==="mcg"){
+    // Convert mg to mcg for calculation, but dose is already in mg (from user input)
+    // If user enters 500 mcg, we store it as 0.5 mg.
+    // But here, mg is the dose value. If the compound is mcg, we need to know if the input is mcg or mg.
+    // The app stores doseMg in mg. So if c.units is mcg, doseMg is actually mcg / 1000.
+    // Wait, no. The app stores doseMg as the numeric value. If user enters 500 mcg, it stores 500.
+    // But the concentration is in mg/mL. So we need to convert 500 mcg to mg (0.5 mg).
+    // So: actualDoseInMg = mg / 1000.
+    var actualDoseInMg = mg / 1000;
+    var k = conc(c);
+    if(!k) return 0;
+    return actualDoseInMg / k * 100; // 100 units per mg
+  }
+  
+  var k = conc(c);
+  if(!k) return 0;
+  return Math.round((num(mg)/k*100)*100)/100;
+}
+
+function mlFor(c,mg){
+  var k = conc(c);
+  if(!k) return 0;
+  
+  // Handle mcg conversion
+  if(c.units==="mcg"){
+    // Convert mg (which is actually mcg value) to mg
+    return (mg / 1000) / k;
+  }
+  
+  return num(mg)/k;
+}
+
+function dosesLeft(c){
+  var k = conc(c);
+  if(!k||!c.doseMg) return null;
+  return Math.floor((c.remainingMl||0)/mlFor(c,c.doseMg));
+}
+
 function concLabel(c){
-  if(c.mode==="liquid")return c.mgPerMl?n2(c.mgPerMl)+" "+c.units+"/mL":"set "+c.units+"/mL";
-  var k=conc(c);
-  if(c.units==="IU")return k>0?n2(k)+" IU/mL from "+n2(c.vialMg)+" IU/"+n2(c.bacMl)+" mL":"set IU and water";
+  if(c.mode==="liquid") return c.mgPerMl?n2(c.mgPerMl)+" "+c.units+"/mL":"set "+c.units+"/mL";
+  var k = conc(c);
+  if(c.units==="IU") return k>0?n2(k)+" IU/mL from "+n2(c.vialMg)+" IU/"+n2(c.bacMl)+" mL":"set IU and water";
+  if(c.units==="mcg") return k>0?n2(k*1000)+" mcg/mL from "+n2(c.vialMg)+" mg/"+n2(c.bacMl)+" mL":"set mg and water";
   return k>0?n2(k)+" mg/mL from "+n2(c.vialMg)+" mg/"+n2(c.bacMl)+" mL":"set vial and water";
 }
 
 function occurs(c,ds){
-  if(c.freq==="prn"||c.freq==="off")return false;
-  if(!c.start)return false;
+  if(c.freq==="prn"||c.freq==="off") return false;
+  if(!c.start) return false;
   var a=pd(c.start),b=pd(ds);
-  if(b<a)return false;
+  if(b<a) return false;
   var diff=Math.round((b-a)/864e5);
   var sched=false;
-  if(c.freq==="daily")sched=true;
-  else if(c.freq==="eod")sched=diff%2===0;
-  else if(c.freq==="2xw")sched=(c.days||[]).indexOf(b.getDay())>-1;
-  else if(c.freq==="weekly")sched=b.getDay()===a.getDay();
-  else if(c.freq==="once")sched=diff===0;
-  if(!sched)return false;
-  if(c.paused)return !!isDone(ds,c.id);
+  if(c.freq==="daily") sched=true;
+  else if(c.freq==="eod") sched=diff%2===0;
+  else if(c.freq==="2xw") sched=(c.days||[]).indexOf(b.getDay())>-1;
+  else if(c.freq==="weekly") sched=b.getDay()===a.getDay();
+  else if(c.freq==="once") sched=diff===0;
+  if(!sched) return false;
+  if(c.paused) return !!isDone(ds,c.id);
   return true;
 }
 function isDone(ds,id){var e=S.done[ds]&&S.done[ds][id];if(!isObj(e))return false;return e.d?e.d===ds:true}
@@ -317,8 +358,15 @@ function viewInv(){
     h+='<div class="row"><div class="nm"><div class="l1"><b>'+esc(c.name)+'</b>'+(c.paused?'<span class="pill">paused</span>':'')+'</div><div class="l2">'+n2(c.doseMg)+' '+esc(c.units||"mg")+' '+esc(c.freq)+(c.time?" at "+esc(c.time):"")+'</div><div class="l2">'+esc(concLabel(c))+' · '+n2(c.remainingMl||0)+' mL left'+(dl!=null?" ("+dl+" doses)":"")+'</div></div><button class="skip" data-edit="'+c.id+'">Edit</button></div>';
   });
   h+='</div><div class="card"><h2>Add compound</h2>';
+  
+  // Fix: Determine display units based on first compound or default to mg
+  var displayUnits = "mg";
+  if(S.compounds.length > 0 && S.compounds[0].units) {
+    displayUnits = S.compounds[0].units;
+  }
+  
   h+='<label>Name</label><input id="ncName"><label>Type</label><select id="ncMode"><option value="powder">powder vial (reconstitute)</option><option value="liquid">pre-mixed liquid</option></select>';
-  h+='<div id="ncPow"><div class="grid2"><div><label>Vial</label><input id="ncMg" type="number" step="0.1"></div><div><label>BAC mL</label><input id="ncBac" type="number" step="0.1"></div></div></div>';
+  h+='<div id="ncPow"><div class="grid2"><div><label>Vial '+displayUnits+'</label><input id="ncMg" type="number" step="0.1"></div><div><label>BAC mL</label><input id="ncBac" type="number" step="0.1"></div></div></div>';
   h+='<div id="ncLiq" style="display:none"><div class="grid2"><div><label>Per mL</label><input id="ncConc" type="number" step="0.1"></div><div><label>Vial mL</label><input id="ncVml" type="number" step="0.1"></div></div></div>';
   h+='<div class="grid2"><div><label>Dose</label><input id="ncDose" type="number" step="0.01"></div><div><label>Units</label><select id="ncUnits"><option value="mg">mg</option><option value="mcg">mcg</option><option value="IU">IU</option></select></div></div>';
   h+='<div class="grid2"><div><label>Time</label><input id="ncTime" type="time"></div><div><label>Frequency</label><select id="ncFreq"><option value="daily">daily</option><option value="eod">every other day</option><option value="2xw">twice weekly</option><option value="weekly">weekly</option><option value="prn">PRN</option></select></div></div>';
@@ -505,7 +553,30 @@ function editCompound(id){
     '<label>Start date</label><input id="eS" type="date" value="'+esc(c.start)+'">'+
     '<label>Site</label><select id="eP"><option value="">—</option>'+sites+'</select>'+
     '<div style="height:12px"></div><button class="btn" id="eSave">Save</button><div style="height:8px"></div><button class="btn alt" id="eCancel">Cancel</button><div style="height:8px"></div><button class="btn alt" id="ePause">'+(c.paused?"Resume":"Pause")+'</button><div style="height:8px"></div><button class="btn bad" id="eDel">Delete</button>');
-  document.getElementById("eMode").onchange=function(){var l=this.value==="liquid";document.getElementById("ePow").style.display=l?"none":"block";document.getElementById("eLiq").style.display=l?"block":"none"};
+  
+  // Fix: Update labels when mode or units change
+  document.getElementById("eMode").onchange=function(){
+    var l=this.value==="liquid";
+    document.getElementById("ePow").style.display=l?"none":"block";
+    document.getElementById("eLiq").style.display=l?"block":"none";
+    updateEditCompoundLabels(c);
+  };
+  
+  document.getElementById("eUnits").onchange=function(){
+    var u=this.value;
+    var unitLabel=u==="IU"?"IU":(u==="mcg"?"mcg":"mg");
+    document.getElementById("eV").placeholder="Vial "+unitLabel;
+    document.getElementById("eC").placeholder=unitLabel+" per mL";
+    // Update existing labels if they exist
+    var vLabel = document.getElementById("eV").parentElement.querySelector("label");
+    var cLabel = document.getElementById("eC").parentElement.querySelector("label");
+    if(vLabel) vLabel.textContent = "Vial "+unitLabel;
+    if(cLabel) cLabel.textContent = unitLabel+" per mL";
+  };
+
+  // Initial update
+  updateEditCompoundLabels(c);
+
   document.getElementById("eSave").onclick=function(){
     c.mode=document.getElementById("eMode").value;
     c.doseMg=+document.getElementById("eD").value||0;
@@ -519,6 +590,14 @@ function editCompound(id){
   document.getElementById("eCancel").onclick=function(){closeModal();render()};
   document.getElementById("ePause").onclick=function(){c.paused=!c.paused;save();closeModal();render()};
   document.getElementById("eDel").onclick=function(){S.compounds=S.compounds.filter(function(x){return x.id!==id});save();closeModal();render()};
+}
+
+function updateEditCompoundLabels(c){
+  var unitLabel=c.units==="IU"?"IU":(c.units==="mcg"?"mcg":"mg");
+  var vLabel = document.getElementById("eV").parentElement.querySelector("label");
+  var cLabel = document.getElementById("eC").parentElement.querySelector("label");
+  if(vLabel) vLabel.textContent = "Vial "+unitLabel;
+  if(cLabel) cLabel.textContent = unitLabel+" per mL";
 }
 
 function editMed(i){
