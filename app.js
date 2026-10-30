@@ -1,5 +1,5 @@
 "use strict";
-var BUILD="v18.1"; // Updated version
+var BUILD="v18.2";
 var KEYS=["stack_v1","venice_stack_v1","stack_v2","venice_stack_v2"];
 var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 function findKey(){for(var i=0;i<KEYS.length;i++){try{if(localStorage.getItem(KEYS[i]))return KEYS[i]}catch(e){}}return "stack_v1"}
@@ -48,7 +48,6 @@ function norm(){
     if(c.time==null)c.time=c.t||"";
     c.time=str(c.time);
     if(!c.units)c.units="mg";
-    // Collapse duplicate fields
     c.vialMg=num(c.vialMg)||num(c.vial)||num(c.mgPerVial);
     delete c.vial;delete c.mgPerVial;
     c.bacMl=num(c.bacMl)||num(c.bac)||num(c.water)||num(c.bacWater);
@@ -105,47 +104,22 @@ function healDates(){
   });
 }
 
-// FIXED: Handle IU vs mg correctly
 function conc(c){
-  var val;
   if(c.units==="IU"){
-    // For IU, vialMg is actually IU, and we need IU/mL
-    if(c.mode==="liquid") return num(c.mgPerMl)||0; // mgPerMl might be IU/mL
-    var vialIU = num(c.vialMg); // This is IU
-    var bac = num(c.bacMl);
-    if(vialIU>0 && bac>0) return vialIU/bac; // IU/mL
+    if(c.mode==="liquid") return num(c.mgPerMl)||0;
+    var vialIU=num(c.vialMg),bac=num(c.bacMl);
+    if(vialIU>0&&bac>0) return vialIU/bac;
     return 0;
   } else {
-    // Standard mg logic
-    var vmg = num(c.vialMg), bac = num(c.bacMl);
+    var vmg=num(c.vialMg),bac2=num(c.bacMl);
     if(c.mode==="liquid") return num(c.mgPerMl)||0;
-    if(vmg>0 && bac>0) return vmg/bac;
+    if(vmg>0&&bac2>0) return vmg/bac2;
     return 0;
   }
 }
-
-function unitsFor(c,mg){
-  if(c.units==="IU") return num(mg); // If dose is IU, return IU
-  var k=conc(c);
-  if(!k)return 0;
-  // For mg, return units (100 units per mg for insulin, or just raw number for others)
-  // Assuming standard mg to units conversion (e.g., 100 units/mL)
-  // If user wants to treat mg as raw units, they can set unitsPerMl in settings, but default is 100
-  return Math.round((num(mg)/k*100)*100)/100;
-}
-
-function mlFor(c,mg){
-  var k=conc(c);
-  if(!k)return 0;
-  return num(mg)/k;
-}
-
-function dosesLeft(c){
-  var k=conc(c);
-  if(!k||!c.doseMg)return null;
-  return Math.floor((c.remainingMl||0)/mlFor(c,c.doseMg));
-}
-
+function unitsFor(c,mg){if(c.units==="IU")return num(mg);var k=conc(c);if(!k)return 0;return Math.round((num(mg)/k*100)*100)/100}
+function mlFor(c,mg){var k=conc(c);if(!k)return 0;return num(mg)/k}
+function dosesLeft(c){var k=conc(c);if(!k||!c.doseMg)return null;return Math.floor((c.remainingMl||0)/mlFor(c,c.doseMg))}
 function concLabel(c){
   if(c.mode==="liquid")return c.mgPerMl?n2(c.mgPerMl)+" "+c.units+"/mL":"set "+c.units+"/mL";
   var k=conc(c);
@@ -337,11 +311,15 @@ function viewMore(){
 
 function viewInv(){
   var h=head("Inventory","Tap a compound to edit");h+='<main><div class="card">';
-  S.compounds.forEach(function(c){var dl=dosesLeft(c);h+='<div class="row"><div class="nm"><div class="l1"><b>'+esc(c.name)+'</b>'+(c.paused?'<span class="pill">paused</span>':'')+'</div><div class="l2">'+n2(c.doseMg)+' '+esc(c.units||"mg")+' '+esc(c.freq)+(c.time?" at "+esc(c.time):"")+'</div><div class="l2">'+esc(concLabel(c))+' · '+n2(c.remainingMl||0)+' mL left'+(dl!=null?" ("+dl+" doses)":"")+'</div></div><button class="skip" data-edit="'+c.id+'">Edit</button></div>'});
+  S.compounds.forEach(function(c){
+    if(!c||typeof c!=="object")return;
+    var dl=dosesLeft(c);
+    h+='<div class="row"><div class="nm"><div class="l1"><b>'+esc(c.name)+'</b>'+(c.paused?'<span class="pill">paused</span>':'')+'</div><div class="l2">'+n2(c.doseMg)+' '+esc(c.units||"mg")+' '+esc(c.freq)+(c.time?" at "+esc(c.time):"")+'</div><div class="l2">'+esc(concLabel(c))+' · '+n2(c.remainingMl||0)+' mL left'+(dl!=null?" ("+dl+" doses)":"")+'</div></div><button class="skip" data-edit="'+c.id+'">Edit</button></div>';
+  });
   h+='</div><div class="card"><h2>Add compound</h2>';
   h+='<label>Name</label><input id="ncName"><label>Type</label><select id="ncMode"><option value="powder">powder vial (reconstitute)</option><option value="liquid">pre-mixed liquid</option></select>';
-  h+='<div id="ncPow"><div class="grid2"><div><label>Vial '+esc(c.units||"mg")+'</label><input id="ncMg" type="number" step="0.1"></div><div><label>BAC mL</label><input id="ncBac" type="number" step="0.1"></div></div></div>';
-  h+='<div id="ncLiq" style="display:none"><div class="grid2"><div><label>'+esc(c.units||"mg")+' per mL</label><input id="ncConc" type="number" step="0.1"></div><div><label>Vial mL</label><input id="ncVml" type="number" step="0.1"></div></div></div>';
+  h+='<div id="ncPow"><div class="grid2"><div><label>Vial</label><input id="ncMg" type="number" step="0.1"></div><div><label>BAC mL</label><input id="ncBac" type="number" step="0.1"></div></div></div>';
+  h+='<div id="ncLiq" style="display:none"><div class="grid2"><div><label>Per mL</label><input id="ncConc" type="number" step="0.1"></div><div><label>Vial mL</label><input id="ncVml" type="number" step="0.1"></div></div></div>';
   h+='<div class="grid2"><div><label>Dose</label><input id="ncDose" type="number" step="0.01"></div><div><label>Units</label><select id="ncUnits"><option value="mg">mg</option><option value="mcg">mcg</option><option value="IU">IU</option></select></div></div>';
   h+='<div class="grid2"><div><label>Time</label><input id="ncTime" type="time"></div><div><label>Frequency</label><select id="ncFreq"><option value="daily">daily</option><option value="eod">every other day</option><option value="2xw">twice weekly</option><option value="weekly">weekly</option><option value="prn">PRN</option></select></div></div>';
   h+='<div style="margin-top:10px"><button class="btn" id="ncAdd">Add</button></div></div></main>';return h;
@@ -470,7 +448,7 @@ function bind(){
   if(q("#bSave"))q("#bSave").onclick=function(){var w=parseFloat(q("#bW").value),wa=parseFloat(q("#bWaist").value);if(!w&&!wa)return;var d=today(),ex=S.body.find(function(b){return b.date===d});if(ex){if(w)ex.w=w;if(wa)ex.waist=wa}else S.body.push({date:d,w:w||null,waist:wa||null});save();render()};
   if(q("#calPrev"))q("#calPrev").onclick=function(){var b=pd((S.calMonth||today().slice(0,7))+"-01");b.setMonth(b.getMonth()-1);S.calMonth=iso(b).slice(0,7);save();render()};
   if(q("#calNext"))q("#calNext").onclick=function(){var b=pd((S.calMonth||today().slice(0,7))+"-01");b.setMonth(b.getMonth()+1);S.calMonth=iso(b).slice(0,7);save();render()};
-  if(q("#ncMode"))q("#ncMode").onchange=function(){var liq=q("#ncMode").value==="liquid";q("#ncPow").style.display=liq?"none":"block";q("#ncLiq").style.display=liq?"block":"none";var units=q("#ncUnits").value||"mg";document.getElementById("ncMg").placeholder="Vial "+units};
+  if(q("#ncMode"))q("#ncMode").onchange=function(){var liq=q("#ncMode").value==="liquid";q("#ncPow").style.display=liq?"none":"block";q("#ncLiq").style.display=liq?"block":"none"};
   if(q("#ncAdd"))q("#ncAdd").onclick=function(){
     var n=q("#ncName").value.trim();if(!n)return;var mode=q("#ncMode").value;
     var c={id:uid(),name:n,n:n,mode:mode,units:q("#ncUnits").value,doseMg:+q("#ncDose").value||0,time:q("#ncTime").value||"",freq:q("#ncFreq").value,days:q("#ncFreq").value==="2xw"?[1,4]:[],start:today(),route:"subq"};
@@ -517,7 +495,7 @@ function editCompound(id){
   var c=S.compounds.find(function(x){return x.id===id});if(!c)return;
   var liq=c.mode==="liquid";
   var sites=S.sites.map(function(s){return '<option value="'+esc(s.n)+'"'+(c.site===s.n?" selected":"")+'>'+esc(s.n)+'</option>'}).join("");
-  var unitLabel = c.units==="IU" ? "IU" : (c.units==="mcg" ? "mcg" : "mg");
+  var unitLabel=c.units==="IU"?"IU":(c.units==="mcg"?"mcg":"mg");
   modal('<h3>'+esc(c.name)+'</h3>'+
     '<label>Type</label><select id="eMode"><option value="powder"'+(liq?"":" selected")+'>powder vial</option><option value="liquid"'+(liq?" selected":"")+'>pre-mixed liquid</option></select>'+
     '<div id="ePow" style="display:'+(liq?"none":"block")+'"><div class="grid2"><div><label>Vial '+unitLabel+'</label><input id="eV" type="number" step="0.1" value="'+(c.vialMg||"")+'"></div><div><label>BAC mL</label><input id="eB" type="number" step="0.1" value="'+(c.bacMl||"")+'"></div></div></div>'+
@@ -527,14 +505,13 @@ function editCompound(id){
     '<label>Start date</label><input id="eS" type="date" value="'+esc(c.start)+'">'+
     '<label>Site</label><select id="eP"><option value="">—</option>'+sites+'</select>'+
     '<div style="height:12px"></div><button class="btn" id="eSave">Save</button><div style="height:8px"></div><button class="btn alt" id="eCancel">Cancel</button><div style="height:8px"></div><button class="btn alt" id="ePause">'+(c.paused?"Resume":"Pause")+'</button><div style="height:8px"></div><button class="btn bad" id="eDel">Delete</button>');
-  document.getElementById("eMode").onchange=function(){var l=this.value==="liquid";document.getElementById("ePow").style.display=l?"none":"block";document.getElementById("eLiq").style.display=l?"block":"none";var unitLabel=c.units==="IU"?"IU":(c.units==="mcg"?"mcg":"mg");document.getElementById("eV").placeholder="Vial "+unitLabel;document.getElementById("eC").placeholder=unitLabel+" per mL"};
+  document.getElementById("eMode").onchange=function(){var l=this.value==="liquid";document.getElementById("ePow").style.display=l?"none":"block";document.getElementById("eLiq").style.display=l?"block":"none"};
   document.getElementById("eSave").onclick=function(){
     c.mode=document.getElementById("eMode").value;
     c.doseMg=+document.getElementById("eD").value||0;
     c.units=document.getElementById("eUnits").value;
     c.time=document.getElementById("eT").value||"";
     c.freq=document.getElementById("eF").value;c.start=document.getElementById("eS").value;c.site=document.getElementById("eP").value;
-    var unitLabel = c.units==="IU" ? "IU" : (c.units==="mcg" ? "mcg" : "mg");
     if(c.mode==="liquid"){c.mgPerMl=+document.getElementById("eC").value||0;var vm=+document.getElementById("eVm").value||0;if(vm&&vm!==c.vialMl){c.vialMl=vm;c.remainingMl=vm}if(!c.vialMl)c.vialMl=1;if(c.mgPerMl)c.needConc=false}
     else{c.vialMg=+document.getElementById("eV").value||0;c.bacMl=+document.getElementById("eB").value||1}
     save();closeModal();render();
