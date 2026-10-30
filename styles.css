@@ -58,3 +58,37 @@ nav a i{display:block;font-size:17px;font-style:normal;margin-bottom:2px}
 .sheet{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;max-width:420px;width:100%}
 .sheet h3{margin:0 0 6px;font-size:16px}
 pre{font-size:11px;color:var(--dim);white-space:pre-wrap;margin:8px 0 0}
+/* Fix modal layout on small screens */
+.modal .sheet {
+  display: flex;
+  flex-direction: column;
+}
+.modal .sheet h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+.modal .sheet label {
+  font-size: 13px;
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+.modal .sheet input,
+.modal .sheet select {
+  width: 100%;
+  margin-bottom: 2px;
+}
+.modal .sheet .grid2 {
+  gap: 10px;
+}
+.modal .sheet button {
+  margin-top: 10px;
+  width: 100%;
+}
+.modal .sheet .btn.bad {
+  margin-top: 10px;
+}
+
+/* Ensure number inputs don't overflow on small screens */
+input[type="number"] {
+  min-width: 0;
+}
