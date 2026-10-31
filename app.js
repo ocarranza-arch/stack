@@ -1,5 +1,5 @@
 "use strict";
-var BUILD="v18.4";
+var BUILD="v18.6";
 var KEYS=["stack_v1","venice_stack_v1","stack_v2","venice_stack_v2"];
 var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 function findKey(){for(var i=0;i<KEYS.length;i++){try{if(localStorage.getItem(KEYS[i]))return KEYS[i]}catch(e){}}return "stack_v1"}
@@ -10,11 +10,12 @@ function today(){return iso(new Date())}
 function addDays(s,n){var d=pd(s);d.setDate(d.getDate()+n);return iso(d)}
 function uid(){return Math.random().toString(36).slice(2,9)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function n2(x){return Math.round((+x||0)*10)/10}
-function num(x){var v=parseFloat(String(x==null?"":x).replace(/,/g,".").replace(/[-9.]/g,""));return isNaN(v)?0:v}
+function n2(x){return Math.round((+x||0)*100)/100}
+function num(x){var v=parseFloat(String(x==null?"":x).replace(/,/g,".").replace(/[^0-9.]/g,""));return isNaN(v)?0:v}
 function str(x){return String(x==null?"":x)}
 function hhmm(t){var d=new Date(t);if(isNaN(d.getTime()))return "--:--";return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}
 function isObj(x){return x&&typeof x==="object"}
+function fmtMl(x){return (Math.round((+x||0)*100)/100).toString()}
 function fmtU(u){if(!u)return "0";if(u<10)return (Math.round(u*100)/100).toString();return (Math.round(u*10)/10).toString()}
 
 function blank(){return {compounds:[],meds:[],storage:[],done:{},skips:{},medLog:{},oneoff:[],body:[],labs:[],sites:[],settings:{unitsPerMl:100},protocols:[]}}
@@ -119,7 +120,7 @@ function conc(c){
 }
 
 function unitsFor(c,mg){
-  if(c.units==="IU") return num(mg);
+  if(c.units==="IU"){var kI=conc(c);if(!kI)return 0;return Math.round((num(mg)/kI*100)*100)/100}
   var actualDoseInMg = c.units==="mcg" ? num(mg)/1000 : num(mg);
   var k = conc(c);
   if(!k) return 0;
@@ -171,6 +172,7 @@ function logDose(id,ds,mg){
   var dmg=(mg!=null&&num(mg)>0)?num(mg):c.doseMg;
   if(!dmg||dmg<=0)return false;
   var k=conc(c);
+  S.done[ds]=S.done[ds]||{};
   if(isDone(ds,id)){
     var old=S.done[ds][id];
     if(k)c.remainingMl=Math.max(0,(c.remainingMl||0)+mlFor(c,old.mg||c.doseMg)-mlFor(c,dmg));
@@ -210,7 +212,7 @@ function errBox(e){
 window.onerror=function(msg,src,line){errBox(msg+" (line "+line+")")};
 
 function head(title,sub){return '<header><h1>'+esc(title)+'</h1><div class="sub">'+esc(sub)+'</div></header>'}
-function doseLine(c,mg){var u=unitsFor(c,mg);if(!u)return n2(mg)+' '+esc(c.units)+' · no concentration';return fmtU(u)+' u · '+n2(mlFor(c,mg))+' mL'}
+function doseLine(c,mg){var u=unitsFor(c,mg);if(!u)return n2(mg)+' '+esc(c.units)+' · no concentration';return fmtU(u)+' u · '+fmtMl(mlFor(c,mg))+' mL'}
 function timeChip(t,prn){if(prn)return '<span class="timechip prn">PRN</span>';if(!t)return '<span class="timechip any">any time</span>';return '<span class="timechip">'+esc(t)+'</span>'}
 function doseBtn(c,ds,mg){if(!conc(c))return '<button class="dose warn" data-edit="'+c.id+'">'+n2(mg)+' '+esc(c.units)+' · tap to set concentration</button>';return '<button class="dose" data-dose="'+c.id+'|'+ds+'">'+doseLine(c,mg)+'</button>'}
 function byTime(a,b){return str(a.time||"99:99").localeCompare(str(b.time||"99:99"))}
@@ -230,7 +232,7 @@ function viewToday(){
     h+='<div class="card"><h2>Doses</h2>';
     due.forEach(function(c){h+='<div class="row"><div class="chk" data-log="'+c.id+'">✓</div><div class="nm"><div class="l1"><b>'+esc(c.name)+'</b>'+timeChip(c.time,false)+'</div><div class="l2">'+doseBtn(c,d,c.doseMg)+'</div></div><button class="skip" data-skip="'+c.id+'">Skip</button></div>'});
     skipped.forEach(function(c){h+='<div class="row struck"><div class="chk sk" data-log="'+c.id+'">–</div><div class="nm"><div class="l1"><b>'+esc(c.name)+'</b>'+timeChip(c.time,false)+'</div><div class="l2">'+doseBtn(c,d,c.doseMg)+'</div></div><button class="skip on" data-skip="'+c.id+'">Unskip</button></div>'});
-    done.forEach(function(c){var r=S.done[d][c.id]||{};h+='<div class="row done"><div class="chk on" data-undo="'+c.id+'">✓</div><div class="nm"><div class="l1"><b>'+esc(c.name)+'</b>'+timeChip(c.time,false)+'</div><div class="l2">'+doseBtn(c,r.mg||c.doseMg,d)+' · logged '+hhmm(r.t)+'</div></div><button class="skip" data-skip="'+c.id+'">Skip</button></div>'});
+    done.forEach(function(c){var r=S.done[d][c.id]||{};h+='<div class="row done"><div class="chk on" data-undo="'+c.id+'">✓</div><div class="nm"><div class="l1"><b>'+esc(c.name)+'</b>'+timeChip(c.time,false)+'</div><div class="l2">'+doseBtn(c,d,r.mg||c.doseMg)+' · logged '+hhmm(r.t)+'</div></div><button class="skip" data-skip="'+c.id+'">Skip</button></div>'});
     h+='</div>';
   }
   h+=viewMedsToday();
@@ -419,14 +421,14 @@ function closeModal(){var m=document.getElementById("mdl");if(m)m.remove()}
 function doseModal(id,ds){
   var c=S.compounds.find(function(x){return x.id===id});if(!c)return;
   var logged=isDone(ds,id);var cur=logged?(S.done[ds][id].mg||c.doseMg):c.doseMg;
-  var html='<h3>'+esc(c.name)+'</h3><div class="dim">'+(ds===today()?"Today":esc(ds))+' · default '+n2(c.doseMg)+' '+esc(c.units||"mg")+' · '+esc(concLabel(c))+'</div><label>Dose</label><input id="dm" type="number" step="0.01" inputmode="decimal" value="'+n2(cur)+'"><div class="tiny" id="dout" style="margin-top:6px"></div><div style="height:12px"></div><button class="btn" id="dgo">'+(logged?"Update logged dose":"Log it")+'</button><div style="height:8px"></div><button class="btn alt" id="ddef">Reset to '+n2(c.doseMg)+' '+esc(c.units||"mg")+'</button>';
+  var html='<h3>'+esc(c.name)+'</h3><div class="dim">'+(ds===today()?"Today":esc(ds))+' · default '+n2(c.doseMg)+' '+esc(c.units||"mg")+' · '+esc(concLabel(c))+'</div><label>Dose</label><input id="dm" type="number" step="0.01" inputmode="decimal" value="'+num(cur)+'"><div class="tiny" id="dout" style="margin-top:6px"></div><div style="height:12px"></div><button class="btn" id="dgo">'+(logged?"Update logged dose":"Log it")+'</button><div style="height:8px"></div><button class="btn alt" id="ddef">Reset to '+n2(c.doseMg)+' '+esc(c.units||"mg")+'</button>';
   if(logged)html+='<div style="height:12px"></div><label>Move to a different date</label><div class="grid2"><input id="dmv" type="date" value="'+ds+'"><button class="btn alt" id="dmvgo">Move</button></div>';
   html+='<div style="height:8px"></div><button class="btn alt" id="dcancel">Cancel</button>';
   modal(html);
-  function upd(){var v=+document.getElementById("dm").value||0;document.getElementById("dout").textContent=v>0?(fmtU(unitsFor(c,v))+" u · "+n2(mlFor(c,v))+" mL"):"enter a dose"}
+  function upd(){var v=+document.getElementById("dm").value||0;document.getElementById("dout").textContent=v>0?(fmtU(unitsFor(c,v))+" u · "+fmtMl(mlFor(c,v))+" mL"):"enter a dose"}
   document.getElementById("dm").oninput=upd;upd();
   document.getElementById("dgo").onclick=function(){var v=+document.getElementById("dm").value;if(!v||v<=0)return;logDose(id,ds,v);closeModal();render()};
-  document.getElementById("ddef").onclick=function(){document.getElementById("dm").value=n2(c.doseMg);upd()};
+  document.getElementById("ddef").onclick=function(){document.getElementById("dm").value=num(c.doseMg);upd()};
   document.getElementById("dcancel").onclick=closeModal;
   if(logged)document.getElementById("dmvgo").onclick=function(){var to=document.getElementById("dmv").value;if(!to)return;var r=moveDose(id,ds,to);if(r==="occupied"){alert("That date already has a logged dose for this compound.");return}closeModal();render()};
 }
@@ -450,9 +452,9 @@ function bind(){
   document.querySelectorAll("[data-edit]").forEach(function(el){el.onclick=function(){editCompound(el.getAttribute("data-edit"))}});
 
   if(q("#bdSel")){
-    var updBd=function(){var c=S.compounds.find(function(x){return x.id===q("#bdSel").value});if(!c)return;q("#bdDose").value=n2(c.doseMg);q("#bdOut").textContent=conc(c)?(fmtU(unitsFor(c,c.doseMg))+" u · "+n2(mlFor(c,c.doseMg))+" mL"):"no concentration set"};
+    var updBd=function(){var c=S.compounds.find(function(x){return x.id===q("#bdSel").value});if(!c)return;q("#bdDose").value=num(c.doseMg);q("#bdOut").textContent=conc(c)?(fmtU(unitsFor(c,c.doseMg))+" u · "+fmtMl(mlFor(c,c.doseMg))+" mL"):"no concentration set"};
     q("#bdSel").onchange=updBd;updBd();
-    q("#bdDose").oninput=function(){var c=S.compounds.find(function(x){return x.id===q("#bdSel").value});if(!c)return;var v=+q("#bdDose").value||0;q("#bdOut").textContent=v>0?(fmtU(unitsFor(c,v))+" u · "+n2(mlFor(c,v))+" mL"):"enter a dose"};
+    q("#bdDose").oninput=function(){var c=S.compounds.find(function(x){return x.id===q("#bdSel").value});if(!c)return;var v=+q("#bdDose").value||0;q("#bdOut").textContent=v>0?(fmtU(unitsFor(c,v))+" u · "+fmtMl(mlFor(c,v))+" mL"):"enter a dose"};
     q("#bdGo").onclick=function(){
       var id=q("#bdSel").value,ds=q("#bdDate").value,mg=+q("#bdDose").value;if(!id||!ds)return;
       if(!logDose(id,ds,mg)){render();return}
@@ -582,3 +584,4 @@ function editMed(i){
 
 try{norm()}catch(e){errBox(e)}
 render();
+if(navigator.serviceWorker&&location.protocol!=="file:"){navigator.serviceWorker.register("sw.js").catch(function(){})}

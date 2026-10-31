@@ -1,0 +1,13 @@
+{
+  "name": "stack",
+  "private": true,
+  "description": "Stack PWA. No build step: the files in the repo root are what GitHub Pages serves.",
+  "scripts": {
+    "test": "node --test tests/logic.test.js",
+    "test:smoke": "node tests/smoke.js",
+    "bump": "node scripts/bump.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

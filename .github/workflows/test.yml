@@ -1,0 +1,20 @@
+name: Tests
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Logic tests (dose math, parsing, scheduling, version sync)
+        run: npm test
+      - run: npx playwright install --with-deps chromium
+      - name: Browser smoke test (taps through every tab)
+        run: npm run test:smoke
