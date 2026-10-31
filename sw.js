@@ -1,11 +1,9 @@
-const C="stack-v18";
+const C="stack-v18.5";
 self.addEventListener("install",e=>{self.skipWaiting()});
 self.addEventListener("activate",e=>{
   e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
 });
-self.addEventListener("message",e=>{
-  if(e.data==="skip"){e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))).then(()=>self.skipWaiting()))}
-});
+self.addEventListener("message",e=>{if(e.data==="skip")self.skipWaiting()});
 self.addEventListener("fetch",e=>{
   const r=e.request;
   if(r.method!=="GET")return;
