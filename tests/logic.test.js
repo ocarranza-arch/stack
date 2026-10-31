@@ -58,6 +58,21 @@ test("opening the app does not change saved numbers (load is idempotent)", () =>
   assert.deepEqual(plain(c2.S.compounds), plain(a.S.compounds));
 });
 
+test("Oscar's case: 1.6 mg stays 1.6 mg across opens and releases, and shows 32 units (was 16 mg / 320 u)", () => {
+  const s = seed();
+  s.compounds.push({ id: "x16", name: "Case 1.6", mode: "powder", vialMg: 10, bacMl: 2, doseMg: 1.6, units: "mg", freq: "daily", start: "2026-10-01", remainingMl: 2 });
+  let a = loadApp(s);
+  for (let open = 0; open < 5; open++) { a.save(); a = loadApp(a.__saved()); }
+  const c = byId(a, "x16");
+  assert.equal(c.doseMg, 1.6);
+  near(a.unitsFor(c, c.doseMg), 32, "units");
+  assert.equal(a.doseLine(c, c.doseMg), "32 u · 0.32 mL");
+  // Saved as a string (as older builds and imports sometimes did) must parse the same.
+  near(a.unitsFor(c, "1.6"), 32, "units from string");
+  // Other decimal shapes
+  for (const [d, u] of [[0.1, 2], [0.75, 15], [1.25, 25], [2.4, 48], [9.9, 198]]) near(a.unitsFor(c, d), u, `${d} mg`);
+});
+
 // ---------- Dose math (checklist: units and mL must agree, units = mL x 100) ----------
 test("powder mg: 0.25 mg from 10 mg / 2 mL = 0.05 mL = 5 units", () => {
   const a = loadApp(seed()); const c = byId(a, "bpc");

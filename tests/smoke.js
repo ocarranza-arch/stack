@@ -64,6 +64,20 @@ const check = (ok, msg) => { console.log((ok ? "  ok   " : "  FAIL ") + msg); if
   const asNeeded = await page.locator(".card", { hasText: "As needed" }).textContent();
   check(asNeeded.includes("Propranolol"), "Propranolol under As needed");
 
+  // Type a decimal dose in Edit, save, reload the app 3 times: must stay 1.6 mg = 32 u
+  await page.goto(url + "#inv");
+  await page.click('[data-edit="bpc"]');
+  await page.fill("#eD", "1.6");
+  await page.click("#eSave");
+  for (let i = 0; i < 3; i++) await page.reload();
+  await page.goto(url + "#today");
+  const s16 = (await page.evaluate(() => JSON.parse(localStorage.getItem("stack_v1")))).compounds.find((c) => c.id === "bpc");
+  check(s16.doseMg === 1.6, `1.6 mg survives save + 3 reloads (got ${s16.doseMg})`);
+  check((await page.textContent("#app")).includes("32 u · 0.32 mL"), "Today shows 32 u · 0.32 mL for 1.6 mg");
+  await page.click('button[data-dose^="bpc|"]');
+  check((await page.inputValue("#dm")) === "1.6", "dose screen pre-fills 1.6");
+  await page.click("#dcancel");
+
   // Every tab
   for (const t of ["cal", "body", "sites", "more", "inv", "storage", "meds", "labs", "conf", "sync", "tools"]) {
     await page.goto(url + "#" + t);
